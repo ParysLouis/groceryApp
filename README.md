@@ -34,6 +34,19 @@ Follow these steps to clone the project and run the API on your laptop.
    This starts Uvicorn with auto-reload enabled on `http://127.0.0.1:8000`. You can pass flags such as `--host 0.0.0.0`, `--port 8080`, or `--no-reload` to customize the server.
    Interactive API docs are available at `http://127.0.0.1:8000/docs`.
 
+## Managing groceries without the HTTP API
+
+If running the API server isn't convenient, you can manage the grocery list directly via the bundled CLI:
+
+```bash
+python -m app.cli list          # Show open items
+python -m app.cli add Milk -q 2 # Add a new item
+python -m app.cli toggle 1      # Flip the purchased flag
+python -m app.cli delete 1      # Remove an item
+```
+
+Additional commands and flags are available with `python -m app.cli --help`.
+
 ## Running the tests
 
 ```bash
