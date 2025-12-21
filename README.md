@@ -27,11 +27,12 @@ Follow these steps to clone the project and run the API on your laptop.
      pip install -r requirements.txt
      ```
    - If you're offline, the vendored shims in `fastapi/`, `sqlalchemy/`, and `pydantic/` are enough to run the tests and service; `uvicorn` is the only binary you may need to install separately for local serving.
-5. **Run the API with Uvicorn**
+5. **Run the API with a single command**
    ```bash
-   uvicorn app.main:app --reload
+   python -m app
    ```
-   The server binds to `http://127.0.0.1:8000` by default. Interactive API docs are available at `http://127.0.0.1:8000/docs`.
+   This starts Uvicorn with auto-reload enabled on `http://127.0.0.1:8000`. You can pass flags such as `--host 0.0.0.0`, `--port 8080`, or `--no-reload` to customize the server.
+   Interactive API docs are available at `http://127.0.0.1:8000/docs`.
 
 ## Running the tests
 
