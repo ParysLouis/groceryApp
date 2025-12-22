@@ -10,11 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 20
+      - name: Use Node.js 20 (cached)
+        if: hashFiles('package-lock.json') != ''
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+      - name: Use Node.js 20
+        if: hashFiles('package-lock.json') == ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Install dependencies
         run: npm install
       - name: Lint
