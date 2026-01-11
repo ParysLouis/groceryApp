@@ -35,11 +35,11 @@ def generate_export_html(list_id: str, sections: Iterable[ExportSection]) -> str
     sections_html = "".join(section_html)
     return f"""
 <!doctype html>
-<html lang=\"en\">
+<html lang=\"fr\">
 <head>
   <meta charset=\"utf-8\" />
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-  <title>Shopping List</title>
+  <title>Liste de courses</title>
   <style>
     body {{ font-family: Arial, sans-serif; margin: 16px; background: #fafafa; }}
     h1 {{ font-size: 1.5rem; margin-bottom: 0.5rem; }}
@@ -51,12 +51,12 @@ def generate_export_html(list_id: str, sections: Iterable[ExportSection]) -> str
   </style>
 </head>
 <body>
-  <h1>Shopping List</h1>
+  <h1>Liste de courses</h1>
   {sections_html}
   <script>
     const listId = "{list_id}";
     function storageKey(index) {{
-      return `shopping-list-${listId}-${index}`;
+      return `liste-de-courses-${listId}-${index}`;
     }}
     document.querySelectorAll("input[type=checkbox]").forEach((checkbox) => {{
       const key = storageKey(checkbox.dataset.index);
@@ -90,6 +90,6 @@ def export_shopping_list(
     html = generate_export_html(list_id, sections)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    file_path = output_dir / f"shopping-list-{list_date.isoformat()}.html"
+    file_path = output_dir / f"liste-de-courses-{list_date.isoformat()}.html"
     file_path.write_text(html, encoding="utf-8")
     return file_path

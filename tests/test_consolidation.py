@@ -7,16 +7,16 @@ class ConsolidationTests(unittest.TestCase):
     def test_consolidates_matching_items(self):
         items = [
             ShoppingItem(
-                ingredient_name="Tomato",
-                aisle_name="Produce",
+                ingredient_name="Tomate",
+                aisle_name="Fruits et légumes",
                 aisle_order=1,
                 unit="pc",
                 quantity=2,
                 note=None,
             ),
             ShoppingItem(
-                ingredient_name="Tomato",
-                aisle_name="Produce",
+                ingredient_name="Tomate",
+                aisle_name="Fruits et légumes",
                 aisle_order=1,
                 unit="pc",
                 quantity=3,
@@ -30,20 +30,20 @@ class ConsolidationTests(unittest.TestCase):
     def test_splits_by_note(self):
         items = [
             ShoppingItem(
-                ingredient_name="Onion",
-                aisle_name="Produce",
+                ingredient_name="Oignon",
+                aisle_name="Fruits et légumes",
                 aisle_order=1,
                 unit="pc",
                 quantity=1,
-                note="chopped",
+                note="haché",
             ),
             ShoppingItem(
-                ingredient_name="Onion",
-                aisle_name="Produce",
+                ingredient_name="Oignon",
+                aisle_name="Fruits et légumes",
                 aisle_order=1,
                 unit="pc",
                 quantity=1,
-                note="sliced",
+                note="émincé",
             ),
         ]
         consolidated = consolidate_items(items)
@@ -52,15 +52,15 @@ class ConsolidationTests(unittest.TestCase):
     def test_groups_by_aisle(self):
         items = [
             ShoppingItem(
-                ingredient_name="Milk",
-                aisle_name="Dairy",
+                ingredient_name="Lait",
+                aisle_name="Produits laitiers et œufs",
                 aisle_order=2,
                 unit="l",
                 quantity=1,
             ),
             ShoppingItem(
-                ingredient_name="Bread",
-                aisle_name="Bakery",
+                ingredient_name="Pain",
+                aisle_name="Boulangerie",
                 aisle_order=1,
                 unit="pc",
                 quantity=1,
@@ -68,8 +68,8 @@ class ConsolidationTests(unittest.TestCase):
         ]
         consolidated = consolidate_items(items)
         grouped = group_by_aisle(consolidated)
-        self.assertEqual(grouped[0][0], "Bakery")
-        self.assertEqual(grouped[1][0], "Dairy")
+        self.assertEqual(grouped[0][0], "Boulangerie")
+        self.assertEqual(grouped[1][0], "Produits laitiers et œufs")
 
 
 if __name__ == "__main__":
