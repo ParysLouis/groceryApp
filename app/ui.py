@@ -737,6 +737,10 @@ class ShoppingListTab(ttk.Frame):
         self.ingredient_lookup = {}
         self.available_recipes_list = None
         self.selected_recipes_list = None
+        self.recipe_search_var = tk.StringVar()
+        self.recipe_time_var = tk.StringVar()
+        self.recipe_difficulty_var = tk.StringVar()
+        self.recipe_season_var = tk.StringVar()
         self.manual_search_var = tk.StringVar()
         self.manual_season_var = tk.StringVar()
         self.manual_filter_aisle_var = tk.StringVar()
@@ -745,6 +749,9 @@ class ShoppingListTab(ttk.Frame):
         self.manual_quantity_var = tk.StringVar()
         self.manual_unit_var = tk.StringVar()
         self.manual_aisle_var = tk.StringVar()
+        self.recipe_time_combo = None
+        self.recipe_difficulty_combo = None
+        self.recipe_season_combo = None
         self.manual_ingredient_combo = None
         self.manual_season_combo = None
         self.manual_filter_aisle_combo = None
@@ -773,26 +780,61 @@ class ShoppingListTab(ttk.Frame):
         ttk.Label(recipes_frame, text="Recettes").grid(
             row=0, column=0, columnspan=2, sticky="w"
         )
+        filters_frame = ttk.Frame(recipes_frame)
+        filters_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(4, 0))
+        filters_frame.columnconfigure(1, weight=1)
+        filters_frame.columnconfigure(3, weight=1)
+        ttk.Label(filters_frame, text="Recherche").grid(
+            row=0, column=0, sticky="w"
+        )
+        ttk.Entry(filters_frame, textvariable=self.recipe_search_var).grid(
+            row=0, column=1, sticky="ew", padx=(4, 8)
+        )
+        ttk.Label(filters_frame, text="Temps").grid(
+            row=0, column=2, sticky="w"
+        )
+        self.recipe_time_combo = ttk.Combobox(
+            filters_frame, textvariable=self.recipe_time_var, state="readonly"
+        )
+        self.recipe_time_combo.grid(row=0, column=3, sticky="ew")
+        ttk.Label(filters_frame, text="Difficulté").grid(
+            row=1, column=0, sticky="w", pady=(4, 0)
+        )
+        self.recipe_difficulty_combo = ttk.Combobox(
+            filters_frame, textvariable=self.recipe_difficulty_var, state="readonly"
+        )
+        self.recipe_difficulty_combo.grid(
+            row=1, column=1, sticky="ew", padx=(4, 8), pady=(4, 0)
+        )
+        ttk.Label(filters_frame, text="Saison").grid(
+            row=1, column=2, sticky="w", pady=(4, 0)
+        )
+        self.recipe_season_combo = ttk.Combobox(
+            filters_frame, textvariable=self.recipe_season_var, state="readonly"
+        )
+        self.recipe_season_combo.grid(
+            row=1, column=3, sticky="ew", pady=(4, 0)
+        )
         self.available_recipes_list = tk.Listbox(
             recipes_frame, height=6, exportselection=False
         )
         self.available_recipes_list.grid(
-            row=1, column=0, rowspan=2, sticky="nsew", pady=(4, 0)
+            row=2, column=0, rowspan=2, sticky="nsew", pady=(4, 0)
         )
         ttk.Button(recipes_frame, text="Ajouter ➜", command=self._add_recipe).grid(
-            row=1, column=1, sticky="ew", padx=4, pady=(4, 2)
+            row=2, column=1, sticky="ew", padx=4, pady=(4, 2)
         )
         ttk.Button(recipes_frame, text="Retirer", command=self._remove_recipe).grid(
-            row=2, column=1, sticky="ew", padx=4
+            row=3, column=1, sticky="ew", padx=4
         )
         ttk.Label(recipes_frame, text="Sélectionnées").grid(
-            row=3, column=0, columnspan=2, sticky="w", pady=(8, 0)
+            row=4, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
         self.selected_recipes_list = tk.Listbox(
             recipes_frame, height=6, exportselection=False
         )
         self.selected_recipes_list.grid(
-            row=4, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
+            row=5, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
         )
 
         manual_frame = ttk.Frame(selection_frame)
@@ -900,6 +942,16 @@ class ShoppingListTab(ttk.Frame):
         self.manual_ingredient_var.trace_add(
             "write", self._on_manual_ingredient_changed
         )
+        self.recipe_search_var.trace_add("write", self._on_recipe_filter_changed)
+        self.recipe_time_combo.bind(
+            "<<ComboboxSelected>>", self._on_recipe_filter_changed
+        )
+        self.recipe_difficulty_combo.bind(
+            "<<ComboboxSelected>>", self._on_recipe_filter_changed
+        )
+        self.recipe_season_combo.bind(
+            "<<ComboboxSelected>>", self._on_recipe_filter_changed
+        )
 
         preview_frame = ttk.LabelFrame(container, text="Section 1 - Aperçu")
         preview_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=(8, 4))
@@ -939,11 +991,53 @@ class ShoppingListTab(ttk.Frame):
         self.seasons = ingredient_service.list_seasons()
         self.recipes = recipes_service.list_recipes()
         self.recipe_lookup = {recipe["id"]: recipe for recipe in self.recipes}
+        self._refresh_recipe_filter_options()
         self._refresh_recipe_list()
         self._refresh_manual_options()
         self._refresh_previews()
 
+    def _refresh_recipe_filter_options(self):
+        season_names = [season["name"] for season in self.seasons]
+        self.recipe_time_combo["values"] = ["Tous"] + recipes_service.TIME_OPTIONS
+        self.recipe_difficulty_combo["values"] = ["Tous"] + recipes_service.DIFFICULTY_OPTIONS
+        self.recipe_season_combo["values"] = ["Toutes"] + season_names
+        if not self.recipe_time_var.get():
+            self.recipe_time_var.set("Tous")
+        if not self.recipe_difficulty_var.get():
+            self.recipe_difficulty_var.set("Tous")
+        if not self.recipe_season_var.get():
+            self.recipe_season_var.set("Toutes")
+
+    def _get_selected_recipe_season_id(self):
+        selected_season = self.recipe_season_var.get()
+        if not selected_season or selected_season == "Toutes":
+            return None
+        return next(
+            (season["id"] for season in self.seasons if season["name"] == selected_season),
+            None,
+        )
+
     def _refresh_recipe_list(self):
+        season_id = self._get_selected_recipe_season_id()
+        base_recipes = recipes_service.list_recipes(season_id=season_id)
+        search_text = self.recipe_search_var.get().strip().lower()
+        time_filter = self.recipe_time_var.get()
+        difficulty_filter = self.recipe_difficulty_var.get()
+        filtered_recipes = []
+        for recipe in base_recipes:
+            if search_text and search_text not in recipe["name"].lower():
+                continue
+            if time_filter and time_filter != "Tous" and recipe["time_label"] != time_filter:
+                continue
+            if (
+                difficulty_filter
+                and difficulty_filter != "Tous"
+                and recipe["difficulty"] != difficulty_filter
+            ):
+                continue
+            filtered_recipes.append(recipe)
+            self.recipe_lookup[recipe["id"]] = recipe
+        self.recipes = filtered_recipes
         self.available_recipes_list.delete(0, tk.END)
         for recipe in self.recipes:
             self.available_recipes_list.insert(tk.END, recipe["name"])
@@ -1015,6 +1109,9 @@ class ShoppingListTab(ttk.Frame):
 
     def _on_manual_ingredient_changed(self, *_):
         self._sync_selected_ingredient()
+
+    def _on_recipe_filter_changed(self, *_):
+        self._refresh_recipe_list()
 
     def _sync_selected_ingredient(self):
         name = self.manual_ingredient_var.get().strip()
