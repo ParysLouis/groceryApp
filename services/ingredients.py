@@ -8,7 +8,7 @@ from db.connection import get_connection
 def list_aisles():
     with get_connection() as connection:
         return connection.execute(
-            "SELECT id, name FROM aisle ORDER BY sort_order ASC;"
+            "SELECT id, name, sort_order FROM aisle ORDER BY sort_order ASC;"
         ).fetchall()
 
 

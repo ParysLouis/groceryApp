@@ -50,13 +50,13 @@ def generate_export_html(list_id: str, sections: Iterable[ExportSection]) -> str
     .aisle {{ background: #fff; padding: 0.8rem; margin-bottom: 0.8rem; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }}
   </style>
 </head>
-<body>
+<body id="liste-de-courses-{list_id}">
   <h1>Liste de courses</h1>
   {sections_html}
   <script>
     const listId = "{list_id}";
     function storageKey(index) {{
-      return `liste-de-courses-${listId}-${index}`;
+      return `liste-de-courses-${{listId}}-${{index}}`;
     }}
     document.querySelectorAll("input[type=checkbox]").forEach((checkbox) => {{
       const key = storageKey(checkbox.dataset.index);

@@ -26,18 +26,26 @@ class ConsolidatedItem:
 
 
 def consolidate_items(items: Iterable[ShoppingItem]) -> list[ConsolidatedItem]:
-    grouped: dict[tuple[str, str | None, str], ConsolidatedItem] = {}
+    grouped: dict[tuple[str, str], ConsolidatedItem] = {}
     for item in items:
-        key = (item.ingredient_name, item.note, item.unit)
+        key = (item.ingredient_name, item.unit)
         if key in grouped:
             existing = grouped[key]
+            if existing.note == item.note:
+                merged_note = existing.note
+            elif existing.note is None:
+                merged_note = item.note
+            elif item.note is None:
+                merged_note = existing.note
+            else:
+                merged_note = None
             grouped[key] = ConsolidatedItem(
                 ingredient_name=existing.ingredient_name,
                 aisle_name=existing.aisle_name,
                 aisle_order=existing.aisle_order,
                 unit=existing.unit,
                 quantity=existing.quantity + item.quantity,
-                note=existing.note,
+                note=merged_note,
             )
         else:
             grouped[key] = ConsolidatedItem(
@@ -50,15 +58,15 @@ def consolidate_items(items: Iterable[ShoppingItem]) -> list[ConsolidatedItem]:
             )
     return sorted(
         grouped.values(),
-        key=lambda item: (item.aisle_order, item.ingredient_name.lower()),
+        key=lambda item: (item.aisle_name.lower(), item.ingredient_name.lower()),
     )
 
 
 def group_by_aisle(items: Sequence[ConsolidatedItem]) -> list[tuple[str, list[ConsolidatedItem]]]:
-    grouped: dict[tuple[int, str], list[ConsolidatedItem]] = defaultdict(list)
+    grouped: dict[str, list[ConsolidatedItem]] = defaultdict(list)
     for item in items:
-        grouped[(item.aisle_order, item.aisle_name)].append(item)
+        grouped[item.aisle_name].append(item)
     return [
-        (aisle_name, grouped[(order, aisle_name)])
-        for order, aisle_name in sorted(grouped.keys())
+        (aisle_name, grouped[aisle_name])
+        for aisle_name in sorted(grouped.keys(), key=str.lower)
     ]
