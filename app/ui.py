@@ -732,17 +732,29 @@ class ShoppingListTab(ttk.Frame):
         self.manual_item_counter = 0
         self.aisles = []
         self.units = []
+        self.seasons = []
+        self.ingredients = []
+        self.ingredient_lookup = {}
         self.available_recipes_list = None
         self.selected_recipes_list = None
-        self.manual_name_var = tk.StringVar()
+        self.manual_search_var = tk.StringVar()
+        self.manual_season_var = tk.StringVar()
+        self.manual_filter_aisle_var = tk.StringVar()
+        self.manual_filter_unit_var = tk.StringVar()
+        self.manual_ingredient_var = tk.StringVar()
         self.manual_quantity_var = tk.StringVar()
         self.manual_unit_var = tk.StringVar()
         self.manual_aisle_var = tk.StringVar()
+        self.manual_ingredient_combo = None
+        self.manual_season_combo = None
+        self.manual_filter_aisle_combo = None
+        self.manual_filter_unit_combo = None
         self.manual_unit_combo = None
         self.manual_aisle_combo = None
         self.manual_items_tree = None
         self.preview_tree = None
         self.grouped_tree = None
+        self.selected_ingredient = None
         self._build()
         self._load_data()
 
@@ -789,34 +801,71 @@ class ShoppingListTab(ttk.Frame):
         ttk.Label(manual_frame, text="Article manuel").grid(
             row=0, column=0, columnspan=2, sticky="w"
         )
-        ttk.Label(manual_frame, text="Nom").grid(
+        ttk.Label(manual_frame, text="Recherche").grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
-        ttk.Entry(manual_frame, textvariable=self.manual_name_var).grid(
+        ttk.Entry(manual_frame, textvariable=self.manual_search_var).grid(
             row=1, column=1, sticky="ew", pady=(4, 0)
         )
-        ttk.Label(manual_frame, text="Quantité").grid(
+        ttk.Label(manual_frame, text="Saison").grid(
             row=2, column=0, sticky="w", pady=(4, 0)
         )
+        self.manual_season_combo = ttk.Combobox(
+            manual_frame, textvariable=self.manual_season_var, state="readonly"
+        )
+        self.manual_season_combo.grid(row=2, column=1, sticky="ew", pady=(4, 0))
+        ttk.Label(manual_frame, text="Filtre rayon").grid(
+            row=3, column=0, sticky="w", pady=(4, 0)
+        )
+        self.manual_filter_aisle_combo = ttk.Combobox(
+            manual_frame, textvariable=self.manual_filter_aisle_var, state="readonly"
+        )
+        self.manual_filter_aisle_combo.grid(
+            row=3, column=1, sticky="ew", pady=(4, 0)
+        )
+        ttk.Label(manual_frame, text="Filtre unité").grid(
+            row=4, column=0, sticky="w", pady=(4, 0)
+        )
+        self.manual_filter_unit_combo = ttk.Combobox(
+            manual_frame, textvariable=self.manual_filter_unit_var, state="readonly"
+        )
+        self.manual_filter_unit_combo.grid(
+            row=4, column=1, sticky="ew", pady=(4, 0)
+        )
+        ttk.Label(manual_frame, text="Ingrédient").grid(
+            row=5, column=0, sticky="w", pady=(4, 0)
+        )
+        self.manual_ingredient_combo = ttk.Combobox(
+            manual_frame, textvariable=self.manual_ingredient_var
+        )
+        self.manual_ingredient_combo.grid(
+            row=5, column=1, sticky="ew", pady=(4, 0)
+        )
+        self.manual_ingredient_combo.bind(
+            "<<ComboboxSelected>>", self._on_manual_ingredient_selected
+        )
+        ttk.Label(manual_frame, text="Quantité").grid(
+            row=6, column=0, sticky="w", pady=(4, 0)
+        )
         ttk.Entry(manual_frame, textvariable=self.manual_quantity_var).grid(
-            row=2, column=1, sticky="ew", pady=(4, 0)
+            row=6, column=1, sticky="ew", pady=(4, 0)
         )
         ttk.Label(manual_frame, text="Unité").grid(
-            row=3, column=0, sticky="w", pady=(4, 0)
+            row=7, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_unit_combo = ttk.Combobox(
             manual_frame, textvariable=self.manual_unit_var, state="readonly"
         )
-        self.manual_unit_combo.grid(row=3, column=1, sticky="ew", pady=(4, 0))
+        self.manual_unit_combo.grid(row=7, column=1, sticky="ew", pady=(4, 0))
         ttk.Label(manual_frame, text="Rayon").grid(
-            row=4, column=0, sticky="w", pady=(4, 0)
+            row=8, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_aisle_combo = ttk.Combobox(
             manual_frame, textvariable=self.manual_aisle_var, state="readonly"
         )
-        self.manual_aisle_combo.grid(row=4, column=1, sticky="ew", pady=(4, 0))
+        self.manual_aisle_combo.grid(row=8, column=1, sticky="ew", pady=(4, 0))
         ttk.Button(manual_frame, text="Ajouter", command=self._add_manual_item).grid(
-            row=5, column=1, sticky="e", pady=(6, 6)
+            row=9, column=1, sticky="e", pady=(6, 6)
         )
         self.manual_items_tree = ttk.Treeview(
             manual_frame,
@@ -833,11 +882,24 @@ class ShoppingListTab(ttk.Frame):
         self.manual_items_tree.column("unit", width=80, anchor="center")
         self.manual_items_tree.column("aisle", width=120, anchor="w")
         self.manual_items_tree.grid(
-            row=6, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
+            row=10, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
         )
         ttk.Button(
             manual_frame, text="Supprimer", command=self._remove_manual_item
-        ).grid(row=7, column=1, sticky="e", pady=(4, 0))
+        ).grid(row=11, column=1, sticky="e", pady=(4, 0))
+        self.manual_search_var.trace_add("write", self._on_manual_filter_changed)
+        self.manual_season_combo.bind(
+            "<<ComboboxSelected>>", self._on_manual_filter_changed
+        )
+        self.manual_filter_aisle_combo.bind(
+            "<<ComboboxSelected>>", self._on_manual_filter_changed
+        )
+        self.manual_filter_unit_combo.bind(
+            "<<ComboboxSelected>>", self._on_manual_filter_changed
+        )
+        self.manual_ingredient_var.trace_add(
+            "write", self._on_manual_ingredient_changed
+        )
 
         preview_frame = ttk.LabelFrame(container, text="Section 1 - Aperçu")
         preview_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=(8, 4))
@@ -874,6 +936,7 @@ class ShoppingListTab(ttk.Frame):
     def _load_data(self):
         self.aisles = ingredient_service.list_aisles()
         self.units = ingredient_service.list_units()
+        self.seasons = ingredient_service.list_seasons()
         self.recipes = recipes_service.list_recipes()
         self.recipe_lookup = {recipe["id"]: recipe for recipe in self.recipes}
         self._refresh_recipe_list()
@@ -901,12 +964,77 @@ class ShoppingListTab(ttk.Frame):
     def _refresh_manual_options(self):
         unit_names = [unit["name"] for unit in self.units]
         aisle_names = [aisle["name"] for aisle in self.aisles]
+        season_names = [season["name"] for season in self.seasons]
         self.manual_unit_combo["values"] = unit_names
         self.manual_aisle_combo["values"] = aisle_names
+        self.manual_season_combo["values"] = ["Toutes"] + season_names
+        self.manual_filter_aisle_combo["values"] = ["Tous"] + aisle_names
+        self.manual_filter_unit_combo["values"] = ["Toutes"] + unit_names
+        if not self.manual_season_var.get():
+            self.manual_season_var.set("Toutes")
+        if not self.manual_filter_aisle_var.get():
+            self.manual_filter_aisle_var.set("Tous")
+        if not self.manual_filter_unit_var.get():
+            self.manual_filter_unit_var.set("Toutes")
         if unit_names and not self.manual_unit_var.get():
             self.manual_unit_var.set(unit_names[0])
         if aisle_names and not self.manual_aisle_var.get():
             self.manual_aisle_var.set(aisle_names[0])
+        self._refresh_ingredient_options()
+
+    def _refresh_ingredient_options(self):
+        selected_season = self.manual_season_var.get()
+        season_id = next(
+            (season["id"] for season in self.seasons if season["name"] == selected_season),
+            None,
+        )
+        self.ingredients = ingredient_service.list_ingredients(season_id=season_id)
+        search_text = self.manual_search_var.get().strip().lower()
+        aisle_filter = self.manual_filter_aisle_var.get()
+        unit_filter = self.manual_filter_unit_var.get()
+        filtered = []
+        for ingredient in self.ingredients:
+            if aisle_filter and aisle_filter != "Tous" and ingredient["aisle_name"] != aisle_filter:
+                continue
+            if unit_filter and unit_filter != "Toutes" and ingredient["unit_name"] != unit_filter:
+                continue
+            if search_text and search_text not in ingredient["name"].lower():
+                continue
+            filtered.append(ingredient)
+        self.ingredient_lookup = {
+            ingredient["name"]: ingredient for ingredient in self.ingredients
+        }
+        self.manual_ingredient_combo["values"] = [item["name"] for item in filtered]
+        self._sync_selected_ingredient()
+
+    def _on_manual_filter_changed(self, *_):
+        self._refresh_ingredient_options()
+
+    def _on_manual_ingredient_selected(self, _event):
+        self._sync_selected_ingredient()
+
+    def _on_manual_ingredient_changed(self, *_):
+        self._sync_selected_ingredient()
+
+    def _sync_selected_ingredient(self):
+        name = self.manual_ingredient_var.get().strip()
+        ingredient = self.ingredient_lookup.get(name)
+        if ingredient:
+            self._apply_selected_ingredient(ingredient)
+        else:
+            self._clear_selected_ingredient()
+
+    def _apply_selected_ingredient(self, ingredient):
+        self.selected_ingredient = ingredient
+        self.manual_unit_var.set(ingredient["unit_name"])
+        self.manual_aisle_var.set(ingredient["aisle_name"])
+        self.manual_unit_combo.configure(state="disabled")
+        self.manual_aisle_combo.configure(state="disabled")
+
+    def _clear_selected_ingredient(self):
+        self.selected_ingredient = None
+        self.manual_unit_combo.configure(state="readonly")
+        self.manual_aisle_combo.configure(state="readonly")
 
     def _add_recipe(self):
         selection = self.available_recipes_list.curselection()
@@ -935,7 +1063,7 @@ class ShoppingListTab(ttk.Frame):
         self._refresh_previews()
 
     def _add_manual_item(self):
-        name = self.manual_name_var.get().strip()
+        name = self.manual_ingredient_var.get().strip()
         if not name:
             messagebox.showerror(
                 "Validation", "Le nom de l'article est obligatoire."
@@ -954,13 +1082,18 @@ class ShoppingListTab(ttk.Frame):
                 "Validation", "La quantité doit être supérieure à zéro."
             )
             return
-        unit = self.manual_unit_var.get().strip()
-        aisle = self.manual_aisle_var.get().strip()
-        if not unit or not aisle:
-            messagebox.showerror(
-                "Validation", "Sélectionnez une unité et un rayon."
-            )
-            return
+        ingredient = self.ingredient_lookup.get(name)
+        if ingredient:
+            unit = ingredient["unit_name"]
+            aisle = ingredient["aisle_name"]
+        else:
+            unit = self.manual_unit_var.get().strip()
+            aisle = self.manual_aisle_var.get().strip()
+            if not unit or not aisle:
+                messagebox.showerror(
+                    "Validation", "Sélectionnez une unité et un rayon."
+                )
+                return
         aisle_order = next(
             (aisle_item["sort_order"] for aisle_item in self.aisles
              if aisle_item["name"] == aisle),
@@ -982,8 +1115,9 @@ class ShoppingListTab(ttk.Frame):
             text=name,
             values=(self._format_quantity(quantity), unit, aisle),
         )
-        self.manual_name_var.set("")
+        self.manual_ingredient_var.set("")
         self.manual_quantity_var.set("")
+        self._clear_selected_ingredient()
         self._refresh_previews()
 
     def _remove_manual_item(self):
