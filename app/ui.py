@@ -5,6 +5,11 @@ from db.init_db import initialize_database
 from services import ingredients as ingredient_service
 from services import importer as importer_service
 from services import recipes as recipes_service
+from services.consolidation import (
+    ShoppingItem,
+    consolidate_items,
+    group_by_aisle,
+)
 
 
 class IngredientDialog(tk.Toplevel):
@@ -717,6 +722,390 @@ class RecipesTab(ttk.Frame):
         self._refresh_recipe_ingredients()
 
 
+class ShoppingListTab(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.recipes = []
+        self.recipe_lookup = {}
+        self.selected_recipe_ids = []
+        self.manual_items = {}
+        self.manual_item_counter = 0
+        self.aisles = []
+        self.units = []
+        self.available_recipes_list = None
+        self.selected_recipes_list = None
+        self.manual_name_var = tk.StringVar()
+        self.manual_quantity_var = tk.StringVar()
+        self.manual_unit_var = tk.StringVar()
+        self.manual_aisle_var = tk.StringVar()
+        self.manual_unit_combo = None
+        self.manual_aisle_combo = None
+        self.manual_items_tree = None
+        self.preview_tree = None
+        self.grouped_tree = None
+        self._build()
+        self._load_data()
+
+    def _build(self):
+        container = ttk.Frame(self, padding=8)
+        container.pack(fill=tk.BOTH, expand=True)
+
+        selection_frame = ttk.LabelFrame(container, text="Sélection")
+        selection_frame.pack(fill=tk.X, padx=4, pady=4)
+        selection_frame.columnconfigure(0, weight=1)
+        selection_frame.columnconfigure(1, weight=1)
+
+        recipes_frame = ttk.Frame(selection_frame)
+        recipes_frame.grid(row=0, column=0, sticky="nsew", padx=(4, 8), pady=4)
+        recipes_frame.columnconfigure(0, weight=1)
+        ttk.Label(recipes_frame, text="Recettes").grid(
+            row=0, column=0, columnspan=2, sticky="w"
+        )
+        self.available_recipes_list = tk.Listbox(
+            recipes_frame, height=6, exportselection=False
+        )
+        self.available_recipes_list.grid(
+            row=1, column=0, rowspan=2, sticky="nsew", pady=(4, 0)
+        )
+        ttk.Button(recipes_frame, text="Ajouter ➜", command=self._add_recipe).grid(
+            row=1, column=1, sticky="ew", padx=4, pady=(4, 2)
+        )
+        ttk.Button(recipes_frame, text="Retirer", command=self._remove_recipe).grid(
+            row=2, column=1, sticky="ew", padx=4
+        )
+        ttk.Label(recipes_frame, text="Sélectionnées").grid(
+            row=3, column=0, columnspan=2, sticky="w", pady=(8, 0)
+        )
+        self.selected_recipes_list = tk.Listbox(
+            recipes_frame, height=6, exportselection=False
+        )
+        self.selected_recipes_list.grid(
+            row=4, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
+        )
+
+        manual_frame = ttk.Frame(selection_frame)
+        manual_frame.grid(row=0, column=1, sticky="nsew", padx=(8, 4), pady=4)
+        manual_frame.columnconfigure(1, weight=1)
+        ttk.Label(manual_frame, text="Article manuel").grid(
+            row=0, column=0, columnspan=2, sticky="w"
+        )
+        ttk.Label(manual_frame, text="Nom").grid(
+            row=1, column=0, sticky="w", pady=(4, 0)
+        )
+        ttk.Entry(manual_frame, textvariable=self.manual_name_var).grid(
+            row=1, column=1, sticky="ew", pady=(4, 0)
+        )
+        ttk.Label(manual_frame, text="Quantité").grid(
+            row=2, column=0, sticky="w", pady=(4, 0)
+        )
+        ttk.Entry(manual_frame, textvariable=self.manual_quantity_var).grid(
+            row=2, column=1, sticky="ew", pady=(4, 0)
+        )
+        ttk.Label(manual_frame, text="Unité").grid(
+            row=3, column=0, sticky="w", pady=(4, 0)
+        )
+        self.manual_unit_combo = ttk.Combobox(
+            manual_frame, textvariable=self.manual_unit_var, state="readonly"
+        )
+        self.manual_unit_combo.grid(row=3, column=1, sticky="ew", pady=(4, 0))
+        ttk.Label(manual_frame, text="Rayon").grid(
+            row=4, column=0, sticky="w", pady=(4, 0)
+        )
+        self.manual_aisle_combo = ttk.Combobox(
+            manual_frame, textvariable=self.manual_aisle_var, state="readonly"
+        )
+        self.manual_aisle_combo.grid(row=4, column=1, sticky="ew", pady=(4, 0))
+        ttk.Button(manual_frame, text="Ajouter", command=self._add_manual_item).grid(
+            row=5, column=1, sticky="e", pady=(6, 6)
+        )
+        self.manual_items_tree = ttk.Treeview(
+            manual_frame,
+            columns=("quantity", "unit", "aisle"),
+            show="tree headings",
+            height=4,
+        )
+        self.manual_items_tree.heading("#0", text="Article")
+        self.manual_items_tree.heading("quantity", text="Quantité")
+        self.manual_items_tree.heading("unit", text="Unité")
+        self.manual_items_tree.heading("aisle", text="Rayon")
+        self.manual_items_tree.column("#0", width=140, anchor="w")
+        self.manual_items_tree.column("quantity", width=80, anchor="center")
+        self.manual_items_tree.column("unit", width=80, anchor="center")
+        self.manual_items_tree.column("aisle", width=120, anchor="w")
+        self.manual_items_tree.grid(
+            row=6, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
+        )
+        ttk.Button(
+            manual_frame, text="Supprimer", command=self._remove_manual_item
+        ).grid(row=7, column=1, sticky="e", pady=(4, 0))
+
+        preview_frame = ttk.LabelFrame(container, text="Section 1 - Aperçu")
+        preview_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=(8, 4))
+        self.preview_tree = ttk.Treeview(
+            preview_frame,
+            columns=("quantity", "unit"),
+            show="tree headings",
+            height=8,
+        )
+        self.preview_tree.heading("#0", text="Élément")
+        self.preview_tree.heading("quantity", text="Quantité")
+        self.preview_tree.heading("unit", text="Unité")
+        self.preview_tree.column("#0", width=240, anchor="w")
+        self.preview_tree.column("quantity", width=100, anchor="center")
+        self.preview_tree.column("unit", width=100, anchor="center")
+        self.preview_tree.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+        grouped_frame = ttk.LabelFrame(container, text="Section 2 - Liste par rayon")
+        grouped_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=(4, 8))
+        self.grouped_tree = ttk.Treeview(
+            grouped_frame,
+            columns=("quantity", "unit"),
+            show="tree headings",
+            height=8,
+        )
+        self.grouped_tree.heading("#0", text="Article")
+        self.grouped_tree.heading("quantity", text="Quantité")
+        self.grouped_tree.heading("unit", text="Unité")
+        self.grouped_tree.column("#0", width=240, anchor="w")
+        self.grouped_tree.column("quantity", width=100, anchor="center")
+        self.grouped_tree.column("unit", width=100, anchor="center")
+        self.grouped_tree.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+    def _load_data(self):
+        self.aisles = ingredient_service.list_aisles()
+        self.units = ingredient_service.list_units()
+        self.recipes = recipes_service.list_recipes()
+        self.recipe_lookup = {recipe["id"]: recipe for recipe in self.recipes}
+        self._refresh_recipe_list()
+        self._refresh_manual_options()
+        self._refresh_previews()
+
+    def _refresh_recipe_list(self):
+        self.available_recipes_list.delete(0, tk.END)
+        for recipe in self.recipes:
+            self.available_recipes_list.insert(tk.END, recipe["name"])
+        self._refresh_selected_recipes_list()
+
+    def _refresh_selected_recipes_list(self):
+        self.selected_recipe_ids = [
+            recipe_id
+            for recipe_id in self.selected_recipe_ids
+            if recipe_id in self.recipe_lookup
+        ]
+        self.selected_recipes_list.delete(0, tk.END)
+        for recipe_id in self.selected_recipe_ids:
+            self.selected_recipes_list.insert(
+                tk.END, self.recipe_lookup[recipe_id]["name"]
+            )
+
+    def _refresh_manual_options(self):
+        unit_names = [unit["name"] for unit in self.units]
+        aisle_names = [aisle["name"] for aisle in self.aisles]
+        self.manual_unit_combo["values"] = unit_names
+        self.manual_aisle_combo["values"] = aisle_names
+        if unit_names and not self.manual_unit_var.get():
+            self.manual_unit_var.set(unit_names[0])
+        if aisle_names and not self.manual_aisle_var.get():
+            self.manual_aisle_var.set(aisle_names[0])
+
+    def _add_recipe(self):
+        selection = self.available_recipes_list.curselection()
+        if not selection:
+            messagebox.showinfo(
+                "Sélection", "Choisissez une recette à ajouter."
+            )
+            return
+        for index in selection:
+            recipe_id = self.recipes[index]["id"]
+            if recipe_id not in self.selected_recipe_ids:
+                self.selected_recipe_ids.append(recipe_id)
+        self._refresh_selected_recipes_list()
+        self._refresh_previews()
+
+    def _remove_recipe(self):
+        selection = self.selected_recipes_list.curselection()
+        if not selection:
+            messagebox.showinfo(
+                "Sélection", "Choisissez une recette à retirer."
+            )
+            return
+        for index in reversed(selection):
+            self.selected_recipe_ids.pop(index)
+        self._refresh_selected_recipes_list()
+        self._refresh_previews()
+
+    def _add_manual_item(self):
+        name = self.manual_name_var.get().strip()
+        if not name:
+            messagebox.showerror(
+                "Validation", "Le nom de l'article est obligatoire."
+            )
+            return
+        quantity_text = self.manual_quantity_var.get().strip().replace(",", ".")
+        try:
+            quantity = float(quantity_text)
+        except ValueError:
+            messagebox.showerror(
+                "Validation", "La quantité doit être un nombre."
+            )
+            return
+        if quantity <= 0:
+            messagebox.showerror(
+                "Validation", "La quantité doit être supérieure à zéro."
+            )
+            return
+        unit = self.manual_unit_var.get().strip()
+        aisle = self.manual_aisle_var.get().strip()
+        if not unit or not aisle:
+            messagebox.showerror(
+                "Validation", "Sélectionnez une unité et un rayon."
+            )
+            return
+        aisle_order = next(
+            (aisle_item["sort_order"] for aisle_item in self.aisles
+             if aisle_item["name"] == aisle),
+            0,
+        )
+        item_id = f"manual-{self.manual_item_counter}"
+        self.manual_item_counter += 1
+        self.manual_items[item_id] = {
+            "name": name,
+            "quantity": quantity,
+            "unit": unit,
+            "aisle_name": aisle,
+            "aisle_order": aisle_order,
+        }
+        self.manual_items_tree.insert(
+            "",
+            tk.END,
+            iid=item_id,
+            text=name,
+            values=(self._format_quantity(quantity), unit, aisle),
+        )
+        self.manual_name_var.set("")
+        self.manual_quantity_var.set("")
+        self._refresh_previews()
+
+    def _remove_manual_item(self):
+        selection = self.manual_items_tree.selection()
+        if not selection:
+            messagebox.showinfo(
+                "Sélection", "Choisissez un article à supprimer."
+            )
+            return
+        for item_id in selection:
+            self.manual_items_tree.delete(item_id)
+            self.manual_items.pop(item_id, None)
+        self._refresh_previews()
+
+    def _refresh_previews(self):
+        for item in self.preview_tree.get_children():
+            self.preview_tree.delete(item)
+        for recipe_id in self.selected_recipe_ids:
+            recipe = self.recipe_lookup.get(recipe_id)
+            if not recipe:
+                continue
+            parent = self.preview_tree.insert(
+                "",
+                tk.END,
+                text=recipe["name"],
+                values=("", ""),
+            )
+            for ingredient in recipes_service.list_recipe_ingredients_with_metadata(
+                recipe_id
+            ):
+                self.preview_tree.insert(
+                    parent,
+                    tk.END,
+                    text=ingredient["ingredient_name"],
+                    values=(
+                        self._format_quantity(ingredient["quantity"]),
+                        ingredient["unit_name"],
+                    ),
+                )
+            self.preview_tree.item(parent, open=True)
+        if self.manual_items:
+            manual_parent = self.preview_tree.insert(
+                "",
+                tk.END,
+                text="Articles manuels",
+                values=("", ""),
+            )
+            for item in self.manual_items.values():
+                self.preview_tree.insert(
+                    manual_parent,
+                    tk.END,
+                    text=item["name"],
+                    values=(
+                        self._format_quantity(item["quantity"]),
+                        item["unit"],
+                    ),
+                )
+            self.preview_tree.item(manual_parent, open=True)
+        self._refresh_grouped_list()
+
+    def _refresh_grouped_list(self):
+        for item in self.grouped_tree.get_children():
+            self.grouped_tree.delete(item)
+        items = self._build_shopping_items()
+        if not items:
+            return
+        consolidated = consolidate_items(items)
+        grouped = group_by_aisle(consolidated)
+        for aisle_name, aisle_items in grouped:
+            parent = self.grouped_tree.insert(
+                "",
+                tk.END,
+                text=aisle_name,
+                values=("", ""),
+            )
+            for item in aisle_items:
+                label = item.ingredient_name
+                if item.note:
+                    label = f"{label} ({item.note})"
+                self.grouped_tree.insert(
+                    parent,
+                    tk.END,
+                    text=label,
+                    values=(
+                        self._format_quantity(item.quantity),
+                        item.unit,
+                    ),
+                )
+            self.grouped_tree.item(parent, open=True)
+
+    def _build_shopping_items(self):
+        items = []
+        for recipe_id in self.selected_recipe_ids:
+            for ingredient in recipes_service.list_recipe_ingredients_with_metadata(
+                recipe_id
+            ):
+                items.append(
+                    ShoppingItem(
+                        ingredient_name=ingredient["ingredient_name"],
+                        aisle_name=ingredient["aisle_name"],
+                        aisle_order=ingredient["aisle_order"],
+                        unit=ingredient["unit_name"],
+                        quantity=float(ingredient["quantity"]),
+                    )
+                )
+        for item in self.manual_items.values():
+            items.append(
+                ShoppingItem(
+                    ingredient_name=item["name"],
+                    aisle_name=item["aisle_name"],
+                    aisle_order=item["aisle_order"],
+                    unit=item["unit"],
+                    quantity=float(item["quantity"]),
+                )
+            )
+        return items
+
+    @staticmethod
+    def _format_quantity(quantity: float) -> str:
+        return f"{quantity:g}"
+
+
 class RecipesApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -730,12 +1119,7 @@ class RecipesApp(tk.Tk):
         notebook.pack(fill=tk.BOTH, expand=True)
         notebook.add(IngredientsTab(notebook), text="Ingrédients")
         notebook.add(RecipesTab(notebook), text="Recettes")
-        notebook.add(
-            PlaceholderTab(
-                notebook, "Le créateur de liste de courses arrive bientôt."
-            ),
-            text="Liste de courses",
-        )
+        notebook.add(ShoppingListTab(notebook), text="Liste de courses")
 
 
 def main():

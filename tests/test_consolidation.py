@@ -32,7 +32,7 @@ class ConsolidationTests(unittest.TestCase):
             ShoppingItem(
                 ingredient_name="Oignon",
                 aisle_name="Fruits et légumes",
-                aisle_order=1,
+                aisle_order=3,
                 unit="pc",
                 quantity=1,
                 note="haché",
@@ -40,28 +40,29 @@ class ConsolidationTests(unittest.TestCase):
             ShoppingItem(
                 ingredient_name="Oignon",
                 aisle_name="Fruits et légumes",
-                aisle_order=1,
+                aisle_order=3,
                 unit="pc",
                 quantity=1,
                 note="émincé",
             ),
         ]
         consolidated = consolidate_items(items)
-        self.assertEqual(len(consolidated), 2)
+        self.assertEqual(len(consolidated), 1)
+        self.assertEqual(consolidated[0].quantity, 2)
 
     def test_groups_by_aisle(self):
         items = [
             ShoppingItem(
                 ingredient_name="Lait",
                 aisle_name="Produits laitiers et œufs",
-                aisle_order=2,
+                aisle_order=1,
                 unit="l",
                 quantity=1,
             ),
             ShoppingItem(
                 ingredient_name="Pain",
                 aisle_name="Boulangerie",
-                aisle_order=1,
+                aisle_order=2,
                 unit="pc",
                 quantity=1,
             ),

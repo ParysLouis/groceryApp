@@ -216,6 +216,30 @@ def list_recipe_ingredients(
     return [dict(item) for item in items]
 
 
+def list_recipe_ingredients_with_metadata(
+    recipe_id: int, db_path: str | None = None
+) -> list[dict]:
+    with get_connection(db_path) as connection:
+        items = connection.execute(
+            """
+            SELECT recipe_ingredient.id,
+                   recipe_ingredient.quantity,
+                   ingredient.name AS ingredient_name,
+                   unit.name AS unit_name,
+                   aisle.name AS aisle_name,
+                   aisle.sort_order AS aisle_order
+            FROM recipe_ingredient
+            JOIN ingredient ON ingredient.id = recipe_ingredient.ingredient_id
+            JOIN unit ON unit.id = ingredient.unit_id
+            JOIN aisle ON aisle.id = ingredient.default_aisle_id
+            WHERE recipe_ingredient.recipe_id = ?
+            ORDER BY ingredient.name ASC;
+            """,
+            (recipe_id,),
+        ).fetchall()
+    return [dict(item) for item in items]
+
+
 def get_recipe_ingredient(
     recipe_ingredient_id: int, db_path: str | None = None
 ) -> dict | None:
