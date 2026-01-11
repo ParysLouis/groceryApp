@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from db.init_db import initialize_database
 from services import ingredients as ingredient_service
+from services import importer as importer_service
 
 
 class IngredientDialog(tk.Toplevel):
@@ -135,6 +136,9 @@ class IngredientsTab(ttk.Frame):
             side=tk.LEFT, padx=4
         )
         ttk.Button(toolbar, text="Supprimer", command=self._delete).pack(side=tk.LEFT)
+        ttk.Button(toolbar, text="Importer", command=self._import).pack(
+            side=tk.LEFT, padx=4
+        )
 
         self.tree = ttk.Treeview(
             self,
@@ -218,6 +222,28 @@ class IngredientsTab(ttk.Frame):
         if not messagebox.askyesno("Confirmation", "Supprimer cet ingrédient ?"):
             return
         ingredient_service.delete_ingredient(ingredient_id)
+        self.refresh()
+
+    def _import(self):
+        file_path = filedialog.askopenfilename(
+            title="Importer des ingrédients (JSON)",
+            filetypes=[("Fichiers JSON", "*.json")],
+        )
+        if not file_path:
+            return
+        try:
+            imported = importer_service.import_ingredients_from_json(file_path)
+        except importer_service.IngredientImportError as exc:
+            messagebox.showerror("Import", str(exc))
+            return
+        except OSError as exc:
+            messagebox.showerror(
+                "Import", f"Impossible de lire le fichier: {exc}"
+            )
+            return
+        messagebox.showinfo(
+            "Import", f"{imported} ingrédient(s) importé(s)."
+        )
         self.refresh()
 
 
