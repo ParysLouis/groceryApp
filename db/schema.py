@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS recipe (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     total_minutes INTEGER NOT NULL,
+    time_label TEXT,
+    difficulty TEXT,
     source_url TEXT,
     notes TEXT
 );
