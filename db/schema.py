@@ -63,30 +63,30 @@ CREATE TABLE IF NOT EXISTS recipe_ingredient (
 """
 
 DEFAULT_AISLES = [
-    (1, "Produce"),
-    (2, "Meat & Seafood"),
-    (3, "Dairy & Eggs"),
-    (4, "Bakery"),
-    (5, "Pantry"),
-    (6, "Frozen"),
-    (7, "Household"),
-    (8, "Other")
+    (1, "Fruits et légumes"),
+    (2, "Viandes et fruits de mer"),
+    (3, "Produits laitiers et œufs"),
+    (4, "Boulangerie"),
+    (5, "Épicerie"),
+    (6, "Surgelés"),
+    (7, "Maison"),
+    (8, "Autre")
 ]
 
 DEFAULT_UNITS = [
-    ("piece", "pc"),
-    ("gram", "g"),
-    ("kilogram", "kg"),
-    ("milliliter", "ml"),
-    ("liter", "l"),
-    ("teaspoon", "tsp"),
-    ("tablespoon", "tbsp"),
-    ("cup", "cup"),
+    ("pièce", "pc"),
+    ("gramme", "g"),
+    ("kilogramme", "kg"),
+    ("millilitre", "ml"),
+    ("litre", "l"),
+    ("cuillère à café", "càc"),
+    ("cuillère à soupe", "càs"),
+    ("tasse", "tasse"),
 ]
 
 DEFAULT_SEASONS = [
-    "winter",
-    "spring",
-    "summer",
-    "autumn",
+    "hiver",
+    "printemps",
+    "été",
+    "automne",
 ]

@@ -27,26 +27,26 @@ class IngredientDialog(tk.Toplevel):
         body = ttk.Frame(self, padding=12)
         body.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(body, text="Name").grid(row=0, column=0, sticky="w")
+        ttk.Label(body, text="Nom").grid(row=0, column=0, sticky="w")
         ttk.Entry(body, textvariable=self.name_var, width=30).grid(
             row=0, column=1, sticky="ew"
         )
 
-        ttk.Label(body, text="Default aisle").grid(row=1, column=0, sticky="w")
+        ttk.Label(body, text="Rayon par défaut").grid(row=1, column=0, sticky="w")
         aisle_names = [aisle["name"] for aisle in self.aisles]
         self.aisle_combo = ttk.Combobox(
             body, textvariable=self.aisle_var, values=aisle_names, state="readonly"
         )
         self.aisle_combo.grid(row=1, column=1, sticky="ew")
 
-        ttk.Label(body, text="Unit").grid(row=2, column=0, sticky="w")
+        ttk.Label(body, text="Unité").grid(row=2, column=0, sticky="w")
         unit_names = [unit["name"] for unit in self.units]
         self.unit_combo = ttk.Combobox(
             body, textvariable=self.unit_var, values=unit_names, state="readonly"
         )
         self.unit_combo.grid(row=2, column=1, sticky="ew")
 
-        ttk.Label(body, text="Seasons").grid(row=3, column=0, sticky="nw")
+        ttk.Label(body, text="Saisons").grid(row=3, column=0, sticky="nw")
         seasons_frame = ttk.Frame(body)
         seasons_frame.grid(row=3, column=1, sticky="w")
         for idx, season in enumerate(self.seasons):
@@ -58,10 +58,10 @@ class IngredientDialog(tk.Toplevel):
 
         button_frame = ttk.Frame(body)
         button_frame.grid(row=4, column=0, columnspan=2, pady=(12, 0), sticky="e")
-        ttk.Button(button_frame, text="Cancel", command=self.destroy).pack(
+        ttk.Button(button_frame, text="Annuler", command=self.destroy).pack(
             side=tk.RIGHT, padx=(8, 0)
         )
-        ttk.Button(button_frame, text="Save", command=self._on_save).pack(
+        ttk.Button(button_frame, text="Enregistrer", command=self._on_save).pack(
             side=tk.RIGHT
         )
         body.columnconfigure(1, weight=1)
@@ -89,7 +89,9 @@ class IngredientDialog(tk.Toplevel):
     def _on_save(self):
         name = self.name_var.get().strip()
         if not name:
-            messagebox.showerror("Validation", "Ingredient name is required.")
+            messagebox.showerror(
+                "Validation", "Le nom de l'ingrédient est obligatoire."
+            )
             return
         aisle_id = next(
             (a["id"] for a in self.aisles if a["name"] == self.aisle_var.get()),
@@ -100,7 +102,9 @@ class IngredientDialog(tk.Toplevel):
             None,
         )
         if aisle_id is None or unit_id is None:
-            messagebox.showerror("Validation", "Select a valid aisle and unit.")
+            messagebox.showerror(
+                "Validation", "Sélectionnez un rayon et une unité valides."
+            )
             return
         season_ids = [
             season_id
@@ -126,9 +130,11 @@ class IngredientsTab(ttk.Frame):
     def _build(self):
         toolbar = ttk.Frame(self)
         toolbar.pack(fill=tk.X, padx=8, pady=8)
-        ttk.Button(toolbar, text="Add", command=self._add).pack(side=tk.LEFT)
-        ttk.Button(toolbar, text="Edit", command=self._edit).pack(side=tk.LEFT, padx=4)
-        ttk.Button(toolbar, text="Delete", command=self._delete).pack(side=tk.LEFT)
+        ttk.Button(toolbar, text="Ajouter", command=self._add).pack(side=tk.LEFT)
+        ttk.Button(toolbar, text="Modifier", command=self._edit).pack(
+            side=tk.LEFT, padx=4
+        )
+        ttk.Button(toolbar, text="Supprimer", command=self._delete).pack(side=tk.LEFT)
 
         self.tree = ttk.Treeview(
             self,
@@ -137,10 +143,10 @@ class IngredientsTab(ttk.Frame):
             height=14,
         )
         for column, label in [
-            ("name", "Name"),
-            ("aisle", "Aisle"),
-            ("unit", "Unit"),
-            ("seasons", "Seasons"),
+            ("name", "Nom"),
+            ("aisle", "Rayon"),
+            ("unit", "Unité"),
+            ("seasons", "Saisons"),
         ]:
             self.tree.heading(column, text=label)
             self.tree.column(column, width=140, anchor="w")
@@ -166,7 +172,7 @@ class IngredientsTab(ttk.Frame):
         aisles = ingredient_service.list_aisles()
         units = ingredient_service.list_units()
         seasons = ingredient_service.list_seasons()
-        dialog = IngredientDialog(self, "Add Ingredient", aisles, units, seasons)
+        dialog = IngredientDialog(self, "Ajouter un ingrédient", aisles, units, seasons)
         self.wait_window(dialog)
         if dialog.result:
             ingredient_service.create_ingredient(**dialog.result)
@@ -175,19 +181,26 @@ class IngredientsTab(ttk.Frame):
     def _edit(self):
         selected = self.tree.selection()
         if not selected:
-            messagebox.showinfo("Select", "Choose an ingredient to edit.")
+            messagebox.showinfo(
+                "Sélection", "Choisissez un ingrédient à modifier."
+            )
             return
         ingredient_id = int(selected[0])
         ingredient, _ = ingredient_service.get_ingredient(ingredient_id)
         if ingredient is None:
-            messagebox.showerror("Error", "Ingredient no longer exists.")
+            messagebox.showerror("Erreur", "L'ingrédient n'existe plus.")
             self.refresh()
             return
         aisles = ingredient_service.list_aisles()
         units = ingredient_service.list_units()
         seasons = ingredient_service.list_seasons()
         dialog = IngredientDialog(
-            self, "Edit Ingredient", aisles, units, seasons, ingredient=ingredient
+            self,
+            "Modifier l'ingrédient",
+            aisles,
+            units,
+            seasons,
+            ingredient=ingredient,
         )
         self.wait_window(dialog)
         if dialog.result:
@@ -197,10 +210,12 @@ class IngredientsTab(ttk.Frame):
     def _delete(self):
         selected = self.tree.selection()
         if not selected:
-            messagebox.showinfo("Select", "Choose an ingredient to delete.")
+            messagebox.showinfo(
+                "Sélection", "Choisissez un ingrédient à supprimer."
+            )
             return
         ingredient_id = int(selected[0])
-        if not messagebox.askyesno("Confirm", "Delete this ingredient?"):
+        if not messagebox.askyesno("Confirmation", "Supprimer cet ingrédient ?"):
             return
         ingredient_service.delete_ingredient(ingredient_id)
         self.refresh()
@@ -215,7 +230,7 @@ class PlaceholderTab(ttk.Frame):
 class RecipesApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Recipes & Grocery List")
+        self.title("Recettes et liste de courses")
         self.geometry("800x500")
         initialize_database()
         self._build()
@@ -223,11 +238,16 @@ class RecipesApp(tk.Tk):
     def _build(self):
         notebook = ttk.Notebook(self)
         notebook.pack(fill=tk.BOTH, expand=True)
-        notebook.add(IngredientsTab(notebook), text="Ingredients")
-        notebook.add(PlaceholderTab(notebook, "Recipe builder coming soon."), text="Recipes")
+        notebook.add(IngredientsTab(notebook), text="Ingrédients")
         notebook.add(
-            PlaceholderTab(notebook, "Shopping list builder coming soon."),
-            text="Shopping List",
+            PlaceholderTab(notebook, "Le créateur de recettes arrive bientôt."),
+            text="Recettes",
+        )
+        notebook.add(
+            PlaceholderTab(
+                notebook, "Le créateur de liste de courses arrive bientôt."
+            ),
+            text="Liste de courses",
         )
 
 
