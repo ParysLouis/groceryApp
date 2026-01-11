@@ -46,6 +46,25 @@ The importer expects a JSON file with a top-level object containing an `ingredie
 }
 ```
 
+The recipe importer expects a JSON file with a top-level object containing a `recipes` list. Each recipe requires `name`, optional `instructions`, and an optional `ingredients` list. Each ingredient entry must reference an existing ingredient name and include a numeric `quantity`.
+
+```json
+{
+  "recipes": [
+    {
+      "name": "Salade tomate",
+      "instructions": "Couper les tomates et assaisonner.",
+      "ingredients": [
+        {
+          "name": "Tomate",
+          "quantity": 2
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## Running Tests
 
 ```bash

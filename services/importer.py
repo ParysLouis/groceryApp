@@ -11,6 +11,10 @@ class IngredientImportError(ValueError):
     pass
 
 
+class RecipeImportError(ValueError):
+    pass
+
+
 def parse_ingredient_json(payload: str) -> list[dict[str, Any]]:
     try:
         data = json.loads(payload)
@@ -63,6 +67,74 @@ def parse_ingredient_json(payload: str) -> list[dict[str, Any]]:
     return parsed
 
 
+def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise RecipeImportError("Le fichier JSON est invalide.") from exc
+
+    if not isinstance(data, dict):
+        raise RecipeImportError("Le JSON doit contenir un objet racine.")
+
+    recipes = data.get("recipes")
+    if not isinstance(recipes, list):
+        raise RecipeImportError("Le JSON doit contenir une liste 'recipes'.")
+
+    parsed: list[dict[str, Any]] = []
+    for index, recipe in enumerate(recipes, start=1):
+        if not isinstance(recipe, dict):
+            raise RecipeImportError(
+                f"La recette #{index} doit être un objet JSON."
+            )
+        name = _required_string(recipe, "name", index)
+        instructions = recipe.get("instructions", "")
+        if instructions is None:
+            instructions = ""
+        if not isinstance(instructions, str):
+            raise RecipeImportError(
+                f"La recette #{index} doit contenir un texte 'instructions'."
+            )
+
+        ingredients = recipe.get("ingredients", [])
+        if ingredients is None:
+            ingredients = []
+        if not isinstance(ingredients, list):
+            raise RecipeImportError(
+                f"La recette #{index} doit contenir une liste 'ingredients'."
+            )
+        parsed_ingredients: list[dict[str, Any]] = []
+        for ingredient_index, ingredient in enumerate(ingredients, start=1):
+            if not isinstance(ingredient, dict):
+                raise RecipeImportError(
+                    f"L'ingrédient #{ingredient_index} de la recette #{index} est invalide."
+                )
+            ingredient_name = _required_string(
+                ingredient, "name", ingredient_index
+            )
+            quantity = ingredient.get("quantity")
+            if not isinstance(quantity, (int, float)):
+                raise RecipeImportError(
+                    f"La quantité de l'ingrédient #{ingredient_index} de la recette #{index} est invalide."
+                )
+            if quantity <= 0:
+                raise RecipeImportError(
+                    f"La quantité de l'ingrédient #{ingredient_index} de la recette #{index} doit être positive."
+                )
+            parsed_ingredients.append(
+                {"name": ingredient_name, "quantity": float(quantity)}
+            )
+
+        parsed.append(
+            {
+                "name": name,
+                "instructions": instructions.strip(),
+                "ingredients": parsed_ingredients,
+            }
+        )
+
+    return parsed
+
+
 def import_ingredients_from_json(
     file_path: str | Path, db_path: str | None = None
 ) -> int:
@@ -88,6 +160,48 @@ def import_ingredients_from_json(
                 connection, name, aisle_id, unit_id
             )
             _replace_seasons(connection, ingredient_id, season_ids)
+            imported += 1
+
+        connection.commit()
+
+    return imported
+
+
+def import_recipes_from_json(
+    file_path: str | Path, db_path: str | None = None
+) -> int:
+    payload = Path(file_path).read_text(encoding="utf-8")
+    recipes = parse_recipe_json(payload)
+
+    with get_connection(db_path) as connection:
+        ingredient_lookup = _load_lookup(connection, "ingredient")
+        imported = 0
+
+        for recipe in recipes:
+            cursor = connection.execute(
+                """
+                INSERT INTO recipe (name, total_minutes, notes)
+                VALUES (?, ?, ?);
+                """,
+                (recipe["name"], 0, recipe["instructions"] or None),
+            )
+            recipe_id = cursor.lastrowid
+            ingredients_to_insert = []
+            for ingredient in recipe["ingredients"]:
+                ingredient_id = _resolve_lookup(
+                    ingredient_lookup, ingredient["name"], "ingrédient"
+                )
+                ingredients_to_insert.append(
+                    (recipe_id, ingredient_id, ingredient["quantity"])
+                )
+            if ingredients_to_insert:
+                connection.executemany(
+                    """
+                    INSERT INTO recipe_ingredient (recipe_id, ingredient_id, quantity)
+                    VALUES (?, ?, ?);
+                    """,
+                    ingredients_to_insert,
+                )
             imported += 1
 
         connection.commit()
