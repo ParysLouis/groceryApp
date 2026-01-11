@@ -22,7 +22,7 @@ def list_seasons():
         return connection.execute("SELECT id, name FROM season ORDER BY name ASC;").fetchall()
 
 
-def list_ingredients():
+def list_ingredients(season_id: int | None = None):
     with get_connection() as connection:
         return connection.execute(
             """
@@ -36,9 +36,24 @@ def list_ingredients():
             JOIN unit ON unit.id = ingredient.unit_id
             LEFT JOIN ingredient_season ON ingredient_season.ingredient_id = ingredient.id
             LEFT JOIN season ON season.id = ingredient_season.season_id
+            WHERE (
+                ? IS NULL
+                OR NOT EXISTS (
+                    SELECT 1
+                    FROM ingredient_season AS ingredient_season_filter
+                    WHERE ingredient_season_filter.ingredient_id = ingredient.id
+                )
+                OR EXISTS (
+                    SELECT 1
+                    FROM ingredient_season AS ingredient_season_filter
+                    WHERE ingredient_season_filter.ingredient_id = ingredient.id
+                      AND ingredient_season_filter.season_id = ?
+                )
+            )
             GROUP BY ingredient.id
             ORDER BY ingredient.name ASC;
-            """
+            """,
+            (season_id, season_id),
         ).fetchall()
 
 
@@ -60,8 +75,14 @@ def get_ingredient(ingredient_id: int):
     return ingredient, season_ids
 
 
-def create_ingredient(name: str, aisle_id: int, unit_id: int, season_ids: Iterable[int]):
-    with get_connection() as connection:
+def create_ingredient(
+    name: str,
+    aisle_id: int,
+    unit_id: int,
+    season_ids: Iterable[int],
+    db_path: str | None = None,
+) -> int:
+    with get_connection(db_path) as connection:
         cursor = connection.execute(
             """
             INSERT INTO ingredient (name, default_aisle_id, unit_id)
@@ -72,6 +93,7 @@ def create_ingredient(name: str, aisle_id: int, unit_id: int, season_ids: Iterab
         ingredient_id = cursor.lastrowid
         _replace_seasons(connection, ingredient_id, season_ids)
         connection.commit()
+        return ingredient_id
 
 
 def update_ingredient(
