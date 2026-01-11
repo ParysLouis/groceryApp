@@ -1,0 +1,29 @@
+{
+  "ingredients": [
+    { "name": "Sel", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Poivre", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Sucre", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Sucre brun", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Farine", "aisle": "Épicerie", "unit": "gramme" },
+
+    { "name": "Riz", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Pâtes", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Semoule", "aisle": "Épicerie", "unit": "gramme" },
+
+    { "name": "Lentilles", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Pois chiches", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Haricots secs", "aisle": "Épicerie", "unit": "gramme" },
+
+    { "name": "Conserves de tomates", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Coulis de tomate", "aisle": "Épicerie", "unit": "millilitre" },
+
+    { "name": "Huile d’olive", "aisle": "Épicerie", "unit": "millilitre" },
+    { "name": "Huile de tournesol", "aisle": "Épicerie", "unit": "millilitre" },
+    { "name": "Vinaigre", "aisle": "Épicerie", "unit": "millilitre" },
+    { "name": "Sauce soja", "aisle": "Épicerie", "unit": "millilitre" },
+
+    { "name": "Moutarde", "aisle": "Épicerie", "unit": "gramme" },
+    { "name": "Bouillon cube", "aisle": "Épicerie", "unit": "pièce" },
+    { "name": "Levure chimique", "aisle": "Épicerie", "unit": "gramme" }
+  ]
+}

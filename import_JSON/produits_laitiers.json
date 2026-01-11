@@ -1,0 +1,106 @@
+{
+  "ingredients": [
+    {
+      "name": "Lait",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "millilitre"
+    },
+    {
+      "name": "Lait demi-écrémé",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "millilitre"
+    },
+    {
+      "name": "Lait entier",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "millilitre"
+    },
+
+    {
+      "name": "Crème fraîche",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "millilitre"
+    },
+    {
+      "name": "Crème liquide",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "millilitre"
+    },
+
+    {
+      "name": "Beurre",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+    {
+      "name": "Beurre doux",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+    {
+      "name": "Beurre demi-sel",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+
+    {
+      "name": "Fromage râpé",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+    {
+      "name": "Emmental",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+    { "name": "Gouda", "aisle": "Produits laitiers et œufs", "unit": "gramme" },
+    {
+      "name": "Parmesan",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+
+    {
+      "name": "Mozzarella",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "pièce"
+    },
+    {
+      "name": "Fromage de chèvre",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "pièce"
+    },
+
+    {
+      "name": "Yaourt nature",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "pièce"
+    },
+    {
+      "name": "Yaourt grec",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "pièce"
+    },
+    {
+      "name": "Yaourt aux fruits",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "pièce"
+    },
+
+    {
+      "name": "Fromage blanc",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+    {
+      "name": "Ricotta",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    },
+    {
+      "name": "Mascarpone",
+      "aisle": "Produits laitiers et œufs",
+      "unit": "gramme"
+    }
+  ]
+}

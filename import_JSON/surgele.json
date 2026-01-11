@@ -1,0 +1,11 @@
+{
+  "ingredients": [
+    { "name": "Frites surgelées", "aisle": "Surgelés", "unit": "gramme" },
+    { "name": "Légumes surgelés", "aisle": "Surgelés", "unit": "gramme" },
+    { "name": "Épinards surgelés", "aisle": "Surgelés", "unit": "gramme" },
+    { "name": "Petits pois surgelés", "aisle": "Surgelés", "unit": "gramme" },
+    { "name": "Poisson surgelé", "aisle": "Surgelés", "unit": "gramme" },
+    { "name": "Pizza surgelée", "aisle": "Surgelés", "unit": "pièce" },
+    { "name": "Glace", "aisle": "Surgelés", "unit": "pièce" }
+  ]
+}

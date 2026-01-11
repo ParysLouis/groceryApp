@@ -1,0 +1,48 @@
+{
+  "ingredients": [
+    { "name": "Poulet", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+    { "name": "Bœuf", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+    { "name": "Porc", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+    { "name": "Agneau", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+
+    {
+      "name": "Steak haché",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "pièce"
+    },
+    {
+      "name": "Lardons",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "gramme"
+    },
+    {
+      "name": "Saucisse",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "pièce"
+    },
+    { "name": "Jambon", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+
+    { "name": "Saumon", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+    {
+      "name": "Cabillaud",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "gramme"
+    },
+    {
+      "name": "Thon frais",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "gramme"
+    },
+    {
+      "name": "Crevettes",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "gramme"
+    },
+    { "name": "Moules", "aisle": "Viandes et fruits de mer", "unit": "gramme" },
+    {
+      "name": "Poisson pané",
+      "aisle": "Viandes et fruits de mer",
+      "unit": "pièce"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "ingredients": [
+    { "name": "Pain", "aisle": "Boulangerie", "unit": "pièce" },
+    { "name": "Pain complet", "aisle": "Boulangerie", "unit": "pièce" },
+    { "name": "Pain de mie", "aisle": "Boulangerie", "unit": "pièce" },
+    { "name": "Baguette", "aisle": "Boulangerie", "unit": "pièce" },
+    { "name": "Pain pita", "aisle": "Boulangerie", "unit": "pièce" },
+    { "name": "Wrap", "aisle": "Boulangerie", "unit": "pièce" },
+    { "name": "Croissant", "aisle": "Boulangerie", "unit": "pièce" }
+  ]
+}

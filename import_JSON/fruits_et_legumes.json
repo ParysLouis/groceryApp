@@ -1,0 +1,291 @@
+{
+  "ingredients": [
+    {
+      "name": "Pomme",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Poire",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    { "name": "Banane", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Orange",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["hiver"]
+    },
+    {
+      "name": "Mandarine",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["hiver"]
+    },
+    {
+      "name": "Clémentine",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["hiver"]
+    },
+    { "name": "Citron", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Citron vert", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Pamplemousse",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["hiver"]
+    },
+    {
+      "name": "Fraise",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["printemps", "été"]
+    },
+    {
+      "name": "Framboise",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Myrtille",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Groseille",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Raisin",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été", "automne"]
+    },
+    {
+      "name": "Pêche",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Nectarine",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Abricot",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Prune",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Kiwi",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["hiver"]
+    },
+    { "name": "Mangue", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Ananas", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Avocat", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Melon",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Pastèque",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Grenade",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Figue",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+
+    {
+      "name": "Tomate",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Tomate cerise",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Concombre",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Courgette",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Aubergine",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    {
+      "name": "Poivron",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    { "name": "Carotte", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Pomme de terre", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Patate douce", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Oignon", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Oignon rouge", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Ail", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Échalote", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Poireau",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Brocoli",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Chou-fleur",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Chou vert",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Chou rouge",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Chou de Bruxelles",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Épinard",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["printemps", "automne"]
+    },
+    { "name": "Blette", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Laitue",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["printemps", "été"]
+    },
+    {
+      "name": "Roquette",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["printemps", "été"]
+    },
+    {
+      "name": "Endive",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    { "name": "Céleri branche", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Céleri-rave",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Betterave",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Navet",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["automne", "hiver"]
+    },
+    {
+      "name": "Radis",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["printemps", "été"]
+    },
+    {
+      "name": "Champignon de Paris",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce"
+    },
+    {
+      "name": "Maïs",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+
+    {
+      "name": "Basilic",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    { "name": "Persil", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Coriandre", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Ciboulette", "aisle": "Fruits et légumes", "unit": "pièce" },
+    {
+      "name": "Menthe",
+      "aisle": "Fruits et légumes",
+      "unit": "pièce",
+      "seasons": ["été"]
+    },
+    { "name": "Thym", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Romarin", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Aneth", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Laurier", "aisle": "Fruits et légumes", "unit": "pièce" }
+  ]
+}
