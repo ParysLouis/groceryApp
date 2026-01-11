@@ -262,6 +262,8 @@ class RecipeDialog(tk.Toplevel):
         self.recipe = recipe
         self.result = None
         self.name_var = tk.StringVar(value=recipe["name"] if recipe else "")
+        self.time_var = tk.StringVar()
+        self.difficulty_var = tk.StringVar()
         self.instructions_text = None
         self._build()
         self.grab_set()
@@ -282,8 +284,29 @@ class RecipeDialog(tk.Toplevel):
         if self.recipe and self.recipe.get("instructions"):
             self.instructions_text.insert("1.0", self.recipe["instructions"])
 
+        ttk.Label(body, text="Temps").grid(row=2, column=0, sticky="w", pady=(6, 0))
+        time_options = recipes_service.TIME_OPTIONS
+        self.time_combo = ttk.Combobox(
+            body, textvariable=self.time_var, values=time_options, state="readonly"
+        )
+        self.time_combo.grid(row=2, column=1, sticky="w", pady=(6, 0))
+
+        ttk.Label(body, text="Difficulté").grid(
+            row=3, column=0, sticky="w", pady=(6, 0)
+        )
+        difficulty_options = recipes_service.DIFFICULTY_OPTIONS
+        self.difficulty_combo = ttk.Combobox(
+            body,
+            textvariable=self.difficulty_var,
+            values=difficulty_options,
+            state="readonly",
+        )
+        self.difficulty_combo.grid(row=3, column=1, sticky="w", pady=(6, 0))
+
+        self._populate_defaults(time_options, difficulty_options)
+
         button_frame = ttk.Frame(body)
-        button_frame.grid(row=2, column=0, columnspan=2, pady=(12, 0), sticky="e")
+        button_frame.grid(row=4, column=0, columnspan=2, pady=(12, 0), sticky="e")
         ttk.Button(button_frame, text="Annuler", command=self.destroy).pack(
             side=tk.RIGHT, padx=(8, 0)
         )
@@ -291,6 +314,19 @@ class RecipeDialog(tk.Toplevel):
             side=tk.RIGHT
         )
         body.columnconfigure(1, weight=1)
+
+    def _populate_defaults(self, time_options, difficulty_options):
+        if self.recipe:
+            time_label = self.recipe.get("time_label")
+            difficulty = self.recipe.get("difficulty")
+            if time_label in time_options:
+                self.time_var.set(time_label)
+            if difficulty in difficulty_options:
+                self.difficulty_var.set(difficulty)
+        if not self.time_var.get() and time_options:
+            self.time_var.set(time_options[0])
+        if not self.difficulty_var.get() and difficulty_options:
+            self.difficulty_var.set(difficulty_options[0])
 
     def _on_save(self):
         name = self.name_var.get().strip()
@@ -300,9 +336,13 @@ class RecipeDialog(tk.Toplevel):
             )
             return
         instructions = self.instructions_text.get("1.0", tk.END).strip()
+        time_label = self.time_var.get().strip()
+        difficulty = self.difficulty_var.get().strip()
         self.result = {
             "name": name,
             "instructions": instructions,
+            "time_label": time_label,
+            "difficulty": difficulty,
         }
         self.destroy()
 
@@ -390,14 +430,18 @@ class RecipesTab(ttk.Frame):
 
         self.tree = ttk.Treeview(
             recipes_frame,
-            columns=("name", "instructions"),
+            columns=("name", "time", "difficulty", "instructions"),
             show="headings",
             height=12,
         )
         self.tree.heading("name", text="Nom")
+        self.tree.heading("time", text="Temps")
+        self.tree.heading("difficulty", text="Difficulté")
         self.tree.heading("instructions", text="Instructions")
-        self.tree.column("name", width=200, anchor="w")
-        self.tree.column("instructions", width=420, anchor="w")
+        self.tree.column("name", width=160, anchor="w")
+        self.tree.column("time", width=80, anchor="center")
+        self.tree.column("difficulty", width=90, anchor="center")
+        self.tree.column("instructions", width=320, anchor="w")
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self._on_recipe_select)
 
@@ -471,7 +515,12 @@ class RecipesTab(ttk.Frame):
                 "",
                 tk.END,
                 iid=str(recipe["id"]),
-                values=(recipe["name"], recipe["instructions"] or ""),
+                values=(
+                    recipe["name"],
+                    recipe.get("time_label") or "",
+                    recipe.get("difficulty") or "",
+                    recipe["instructions"] or "",
+                ),
             )
         self._refresh_ingredient_options()
         self._refresh_recipe_ingredients()

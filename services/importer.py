@@ -5,6 +5,12 @@ from pathlib import Path
 from typing import Any
 
 from db.connection import get_connection
+from services.recipes import (
+    DIFFICULTY_OPTIONS,
+    TIME_OPTIONS,
+    normalize_difficulty,
+    normalize_time_label,
+)
 
 
 class IngredientImportError(ValueError):
@@ -95,6 +101,32 @@ def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
                 f"La recette #{index} doit contenir un texte 'instructions'."
             )
 
+        time_label = recipe.get("time")
+        if time_label is None:
+            time_label = ""
+        if not isinstance(time_label, str):
+            raise RecipeImportError(
+                f"La recette #{index} doit contenir un texte 'time'."
+            )
+        cleaned_time_label = time_label.strip()
+        if cleaned_time_label and cleaned_time_label not in TIME_OPTIONS:
+            raise RecipeImportError(
+                f"La recette #{index} contient un temps invalide."
+            )
+
+        difficulty = recipe.get("difficulty")
+        if difficulty is None:
+            difficulty = ""
+        if not isinstance(difficulty, str):
+            raise RecipeImportError(
+                f"La recette #{index} doit contenir un texte 'difficulty'."
+            )
+        cleaned_difficulty = difficulty.strip()
+        if cleaned_difficulty and cleaned_difficulty not in DIFFICULTY_OPTIONS:
+            raise RecipeImportError(
+                f"La recette #{index} contient une difficulté invalide."
+            )
+
         ingredients = recipe.get("ingredients", [])
         if ingredients is None:
             ingredients = []
@@ -128,6 +160,8 @@ def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
             {
                 "name": name,
                 "instructions": instructions.strip(),
+                "time_label": cleaned_time_label or None,
+                "difficulty": cleaned_difficulty or None,
                 "ingredients": parsed_ingredients,
             }
         )
@@ -178,12 +212,24 @@ def import_recipes_from_json(
         imported = 0
 
         for recipe in recipes:
+            normalized_time_label, total_minutes = normalize_time_label(
+                recipe.get("time_label")
+            )
+            normalized_difficulty = normalize_difficulty(
+                recipe.get("difficulty")
+            )
             cursor = connection.execute(
                 """
-                INSERT INTO recipe (name, total_minutes, notes)
-                VALUES (?, ?, ?);
+                INSERT INTO recipe (name, total_minutes, time_label, difficulty, notes)
+                VALUES (?, ?, ?, ?, ?);
                 """,
-                (recipe["name"], 0, recipe["instructions"] or None),
+                (
+                    recipe["name"],
+                    total_minutes,
+                    normalized_time_label,
+                    normalized_difficulty,
+                    recipe["instructions"] or None,
+                ),
             )
             recipe_id = cursor.lastrowid
             ingredients_to_insert = []
