@@ -84,19 +84,52 @@ def create_recipe(
         return cursor.lastrowid
 
 
-def list_recipes(db_path: str | None = None) -> list[dict]:
+def list_recipes(
+    db_path: str | None = None, season_id: int | None = None
+) -> list[dict]:
     with get_connection(db_path) as connection:
-        recipes = connection.execute(
-            """
-            SELECT id,
-                   name,
-                   time_label,
-                   difficulty,
-                   notes AS instructions
-            FROM recipe
-            ORDER BY name ASC;
-            """
-        ).fetchall()
+        if season_id is None:
+            recipes = connection.execute(
+                """
+                SELECT id,
+                       name,
+                       time_label,
+                       difficulty,
+                       notes AS instructions
+                FROM recipe
+                ORDER BY name ASC;
+                """
+            ).fetchall()
+        else:
+            recipes = connection.execute(
+                """
+                SELECT recipe.id,
+                       recipe.name,
+                       recipe.time_label,
+                       recipe.difficulty,
+                       recipe.notes AS instructions
+                FROM recipe
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM recipe_ingredient
+                    JOIN ingredient ON ingredient.id = recipe_ingredient.ingredient_id
+                    WHERE recipe_ingredient.recipe_id = recipe.id
+                      AND EXISTS (
+                          SELECT 1
+                          FROM ingredient_season
+                          WHERE ingredient_season.ingredient_id = ingredient.id
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM ingredient_season
+                          WHERE ingredient_season.ingredient_id = ingredient.id
+                            AND ingredient_season.season_id = ?
+                      )
+                )
+                ORDER BY recipe.name ASC;
+                """,
+                (season_id,),
+            ).fetchall()
     return [dict(recipe) for recipe in recipes]
 
 
