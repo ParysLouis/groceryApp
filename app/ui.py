@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox, ttk
 from db.init_db import initialize_database
 from services import ingredients as ingredient_service
 from services import importer as importer_service
+from services import recipes as recipes_service
 
 
 class IngredientDialog(tk.Toplevel):
@@ -253,6 +254,69 @@ class PlaceholderTab(ttk.Frame):
         ttk.Label(self, text=label).pack(padx=16, pady=16)
 
 
+class RecipesTab(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.name_var = tk.StringVar()
+        self.instructions_text = None
+        self.tree = None
+        self._build()
+        self.refresh()
+
+    def _build(self):
+        form = ttk.Frame(self)
+        form.pack(fill=tk.X, padx=8, pady=8)
+
+        ttk.Label(form, text="Nom").grid(row=0, column=0, sticky="w")
+        ttk.Entry(form, textvariable=self.name_var, width=30).grid(
+            row=0, column=1, sticky="ew", padx=(4, 8)
+        )
+
+        ttk.Label(form, text="Instructions").grid(row=1, column=0, sticky="nw")
+        self.instructions_text = tk.Text(form, height=4, width=50)
+        self.instructions_text.grid(row=1, column=1, sticky="ew", padx=(4, 8))
+
+        ttk.Button(form, text="Ajouter", command=self._add).grid(
+            row=0, column=2, rowspan=2, sticky="e"
+        )
+
+        form.columnconfigure(1, weight=1)
+
+        self.tree = ttk.Treeview(
+            self,
+            columns=("name", "instructions"),
+            show="headings",
+            height=12,
+        )
+        self.tree.heading("name", text="Nom")
+        self.tree.heading("instructions", text="Instructions")
+        self.tree.column("name", width=200, anchor="w")
+        self.tree.column("instructions", width=520, anchor="w")
+        self.tree.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+
+    def refresh(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        for recipe in recipes_service.list_recipes():
+            self.tree.insert(
+                "",
+                tk.END,
+                iid=str(recipe["id"]),
+                values=(recipe["name"], recipe["notes"] or ""),
+            )
+
+    def _add(self):
+        name = self.name_var.get().strip()
+        instructions = self.instructions_text.get("1.0", tk.END).strip()
+        if not name:
+            messagebox.showerror("Validation", "Le nom de la recette est obligatoire.")
+            return
+        recipes_service.create_recipe(name=name, instructions=instructions)
+        self.name_var.set("")
+        self.instructions_text.delete("1.0", tk.END)
+        self.refresh()
+
+
 class RecipesApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -265,10 +329,7 @@ class RecipesApp(tk.Tk):
         notebook = ttk.Notebook(self)
         notebook.pack(fill=tk.BOTH, expand=True)
         notebook.add(IngredientsTab(notebook), text="Ingrédients")
-        notebook.add(
-            PlaceholderTab(notebook, "Le créateur de recettes arrive bientôt."),
-            text="Recettes",
-        )
+        notebook.add(RecipesTab(notebook), text="Recettes")
         notebook.add(
             PlaceholderTab(
                 notebook, "Le créateur de liste de courses arrive bientôt."
