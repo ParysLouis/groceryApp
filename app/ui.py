@@ -302,7 +302,7 @@ class RecipesTab(ttk.Frame):
                 "",
                 tk.END,
                 iid=str(recipe["id"]),
-                values=(recipe["name"], recipe["notes"] or ""),
+                values=(recipe["name"], recipe["instructions"] or ""),
             )
 
     def _add(self):
