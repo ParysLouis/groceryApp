@@ -3,30 +3,34 @@ from __future__ import annotations
 from db.connection import get_connection
 
 
-def list_recipes():
+def create_recipe(name: str, instructions: str | None) -> int:
+    cleaned_name = name.strip()
+    if not cleaned_name:
+        raise ValueError("Recipe name cannot be empty.")
+
+    cleaned_instructions = instructions.strip() if instructions else None
+
     with get_connection() as connection:
-        return connection.execute(
+        cursor = connection.execute(
             """
-            SELECT id, name, notes
+            INSERT INTO recipe (name, total_minutes, notes)
+            VALUES (?, ?, ?);
+            """,
+            (cleaned_name, 0, cleaned_instructions),
+        )
+        connection.commit()
+        return cursor.lastrowid
+
+
+def list_recipes() -> list[dict]:
+    with get_connection() as connection:
+        recipes = connection.execute(
+            """
+            SELECT id,
+                   name,
+                   notes AS instructions
             FROM recipe
             ORDER BY name ASC;
             """
         ).fetchall()
-
-
-def create_recipe(
-    name: str,
-    instructions: str,
-    total_minutes: int = 0,
-    source_url: str | None = None,
-):
-    notes = instructions.strip() if instructions.strip() else None
-    with get_connection() as connection:
-        connection.execute(
-            """
-            INSERT INTO recipe (name, total_minutes, source_url, notes)
-            VALUES (?, ?, ?, ?);
-            """,
-            (name.strip(), total_minutes, source_url, notes),
-        )
-        connection.commit()
+    return [dict(recipe) for recipe in recipes]
