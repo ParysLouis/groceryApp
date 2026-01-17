@@ -1,3 +1,4 @@
+import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -12,7 +13,7 @@ from services.consolidation import (
 )
 
 
-class IngredientDialog(tk.Toplevel):
+class IngredientDialog(ctk.CTkToplevel):
     def __init__(self, master, title, aisles, units, seasons, ingredient=None):
         super().__init__(master)
         self.title(title)
@@ -31,44 +32,44 @@ class IngredientDialog(tk.Toplevel):
         self.grab_set()
 
     def _build(self):
-        body = ttk.Frame(self, padding=12)
-        body.pack(fill=tk.BOTH, expand=True)
+        body = ctk.CTkFrame(self)
+        body.pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
 
-        ttk.Label(body, text="Nom").grid(row=0, column=0, sticky="w")
-        ttk.Entry(body, textvariable=self.name_var, width=30).grid(
+        ctk.CTkLabel(body, text="Nom").grid(row=0, column=0, sticky="w")
+        ctk.CTkEntry(body, textvariable=self.name_var, width=240).grid(
             row=0, column=1, sticky="ew"
         )
 
-        ttk.Label(body, text="Rayon par défaut").grid(row=1, column=0, sticky="w")
+        ctk.CTkLabel(body, text="Rayon par défaut").grid(row=1, column=0, sticky="w")
         aisle_names = [aisle["name"] for aisle in self.aisles]
-        self.aisle_combo = ttk.Combobox(
-            body, textvariable=self.aisle_var, values=aisle_names, state="readonly"
+        self.aisle_combo = ctk.CTkComboBox(
+            body, variable=self.aisle_var, values=aisle_names
         )
         self.aisle_combo.grid(row=1, column=1, sticky="ew")
 
-        ttk.Label(body, text="Unité").grid(row=2, column=0, sticky="w")
+        ctk.CTkLabel(body, text="Unité").grid(row=2, column=0, sticky="w")
         unit_names = [unit["name"] for unit in self.units]
-        self.unit_combo = ttk.Combobox(
-            body, textvariable=self.unit_var, values=unit_names, state="readonly"
+        self.unit_combo = ctk.CTkComboBox(
+            body, variable=self.unit_var, values=unit_names
         )
         self.unit_combo.grid(row=2, column=1, sticky="ew")
 
-        ttk.Label(body, text="Saisons").grid(row=3, column=0, sticky="nw")
-        seasons_frame = ttk.Frame(body)
+        ctk.CTkLabel(body, text="Saisons").grid(row=3, column=0, sticky="nw")
+        seasons_frame = ctk.CTkFrame(body)
         seasons_frame.grid(row=3, column=1, sticky="w")
         for idx, season in enumerate(self.seasons):
             var = tk.BooleanVar()
             self.season_vars[season["id"]] = var
-            ttk.Checkbutton(seasons_frame, text=season["name"], variable=var).grid(
+            ctk.CTkCheckBox(seasons_frame, text=season["name"], variable=var).grid(
                 row=idx // 2, column=idx % 2, sticky="w", padx=4, pady=2
             )
 
-        button_frame = ttk.Frame(body)
+        button_frame = ctk.CTkFrame(body)
         button_frame.grid(row=4, column=0, columnspan=2, pady=(12, 0), sticky="e")
-        ttk.Button(button_frame, text="Annuler", command=self.destroy).pack(
+        ctk.CTkButton(button_frame, text="Annuler", command=self.destroy).pack(
             side=tk.RIGHT, padx=(8, 0)
         )
-        ttk.Button(button_frame, text="Enregistrer", command=self._on_save).pack(
+        ctk.CTkButton(button_frame, text="Enregistrer", command=self._on_save).pack(
             side=tk.RIGHT
         )
         body.columnconfigure(1, weight=1)
@@ -127,7 +128,7 @@ class IngredientDialog(tk.Toplevel):
         self.destroy()
 
 
-class IngredientsTab(ttk.Frame):
+class IngredientsTab(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.tree = None
@@ -135,14 +136,14 @@ class IngredientsTab(ttk.Frame):
         self.refresh()
 
     def _build(self):
-        toolbar = ttk.Frame(self)
+        toolbar = ctk.CTkFrame(self)
         toolbar.pack(fill=tk.X, padx=8, pady=8)
-        ttk.Button(toolbar, text="Ajouter", command=self._add).pack(side=tk.LEFT)
-        ttk.Button(toolbar, text="Modifier", command=self._edit).pack(
+        ctk.CTkButton(toolbar, text="Ajouter", command=self._add).pack(side=tk.LEFT)
+        ctk.CTkButton(toolbar, text="Modifier", command=self._edit).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(toolbar, text="Supprimer", command=self._delete).pack(side=tk.LEFT)
-        ttk.Button(toolbar, text="Importer", command=self._import).pack(
+        ctk.CTkButton(toolbar, text="Supprimer", command=self._delete).pack(side=tk.LEFT)
+        ctk.CTkButton(toolbar, text="Importer", command=self._import).pack(
             side=tk.LEFT, padx=4
         )
 
@@ -253,13 +254,13 @@ class IngredientsTab(ttk.Frame):
         self.refresh()
 
 
-class PlaceholderTab(ttk.Frame):
+class PlaceholderTab(ctk.CTkFrame):
     def __init__(self, master, label):
         super().__init__(master)
-        ttk.Label(self, text=label).pack(padx=16, pady=16)
+        ctk.CTkLabel(self, text=label).pack(padx=16, pady=16)
 
 
-class RecipeDialog(tk.Toplevel):
+class RecipeDialog(ctk.CTkToplevel):
     def __init__(self, master, title, recipe=None):
         super().__init__(master)
         self.title(title)
@@ -274,48 +275,47 @@ class RecipeDialog(tk.Toplevel):
         self.grab_set()
 
     def _build(self):
-        body = ttk.Frame(self, padding=12)
-        body.pack(fill=tk.BOTH, expand=True)
+        body = ctk.CTkFrame(self)
+        body.pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
 
-        ttk.Label(body, text="Nom").grid(row=0, column=0, sticky="w")
-        ttk.Entry(body, textvariable=self.name_var, width=40).grid(
+        ctk.CTkLabel(body, text="Nom").grid(row=0, column=0, sticky="w")
+        ctk.CTkEntry(body, textvariable=self.name_var, width=320).grid(
             row=0, column=1, sticky="ew"
         )
 
-        ttk.Label(body, text="Instructions").grid(row=1, column=0, sticky="nw")
-        self.instructions_text = tk.Text(body, height=6, width=50)
+        ctk.CTkLabel(body, text="Instructions").grid(row=1, column=0, sticky="nw")
+        self.instructions_text = ctk.CTkTextbox(body, height=120, width=380)
         self.instructions_text.grid(row=1, column=1, sticky="ew")
 
         if self.recipe and self.recipe.get("instructions"):
             self.instructions_text.insert("1.0", self.recipe["instructions"])
 
-        ttk.Label(body, text="Temps").grid(row=2, column=0, sticky="w", pady=(6, 0))
+        ctk.CTkLabel(body, text="Temps").grid(row=2, column=0, sticky="w", pady=(6, 0))
         time_options = recipes_service.TIME_OPTIONS
-        self.time_combo = ttk.Combobox(
-            body, textvariable=self.time_var, values=time_options, state="readonly"
+        self.time_combo = ctk.CTkComboBox(
+            body, variable=self.time_var, values=time_options
         )
         self.time_combo.grid(row=2, column=1, sticky="w", pady=(6, 0))
 
-        ttk.Label(body, text="Difficulté").grid(
+        ctk.CTkLabel(body, text="Difficulté").grid(
             row=3, column=0, sticky="w", pady=(6, 0)
         )
         difficulty_options = recipes_service.DIFFICULTY_OPTIONS
-        self.difficulty_combo = ttk.Combobox(
+        self.difficulty_combo = ctk.CTkComboBox(
             body,
-            textvariable=self.difficulty_var,
+            variable=self.difficulty_var,
             values=difficulty_options,
-            state="readonly",
         )
         self.difficulty_combo.grid(row=3, column=1, sticky="w", pady=(6, 0))
 
         self._populate_defaults(time_options, difficulty_options)
 
-        button_frame = ttk.Frame(body)
+        button_frame = ctk.CTkFrame(body)
         button_frame.grid(row=4, column=0, columnspan=2, pady=(12, 0), sticky="e")
-        ttk.Button(button_frame, text="Annuler", command=self.destroy).pack(
+        ctk.CTkButton(button_frame, text="Annuler", command=self.destroy).pack(
             side=tk.RIGHT, padx=(8, 0)
         )
-        ttk.Button(button_frame, text="Enregistrer", command=self._on_save).pack(
+        ctk.CTkButton(button_frame, text="Enregistrer", command=self._on_save).pack(
             side=tk.RIGHT
         )
         body.columnconfigure(1, weight=1)
@@ -352,7 +352,7 @@ class RecipeDialog(tk.Toplevel):
         self.destroy()
 
 
-class RecipeIngredientDialog(tk.Toplevel):
+class RecipeIngredientDialog(ctk.CTkToplevel):
     def __init__(self, master, title, ingredient_name, quantity):
         super().__init__(master)
         self.title(title)
@@ -364,23 +364,23 @@ class RecipeIngredientDialog(tk.Toplevel):
         self.grab_set()
 
     def _build(self):
-        body = ttk.Frame(self, padding=12)
-        body.pack(fill=tk.BOTH, expand=True)
+        body = ctk.CTkFrame(self)
+        body.pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
 
-        ttk.Label(body, text="Ingrédient").grid(row=0, column=0, sticky="w")
-        ttk.Label(body, text=self.ingredient_name).grid(row=0, column=1, sticky="w")
+        ctk.CTkLabel(body, text="Ingrédient").grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(body, text=self.ingredient_name).grid(row=0, column=1, sticky="w")
 
-        ttk.Label(body, text="Quantité").grid(row=1, column=0, sticky="w")
-        ttk.Entry(body, textvariable=self.quantity_var, width=20).grid(
+        ctk.CTkLabel(body, text="Quantité").grid(row=1, column=0, sticky="w")
+        ctk.CTkEntry(body, textvariable=self.quantity_var, width=160).grid(
             row=1, column=1, sticky="w"
         )
 
-        button_frame = ttk.Frame(body)
+        button_frame = ctk.CTkFrame(body)
         button_frame.grid(row=2, column=0, columnspan=2, pady=(12, 0), sticky="e")
-        ttk.Button(button_frame, text="Annuler", command=self.destroy).pack(
+        ctk.CTkButton(button_frame, text="Annuler", command=self.destroy).pack(
             side=tk.RIGHT, padx=(8, 0)
         )
-        ttk.Button(button_frame, text="Enregistrer", command=self._on_save).pack(
+        ctk.CTkButton(button_frame, text="Enregistrer", command=self._on_save).pack(
             side=tk.RIGHT
         )
 
@@ -402,7 +402,7 @@ class RecipeIngredientDialog(tk.Toplevel):
         self.destroy()
 
 
-class RecipesTab(ttk.Frame):
+class RecipesTab(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.tree = None
@@ -416,21 +416,21 @@ class RecipesTab(ttk.Frame):
         self.refresh()
 
     def _build(self):
-        toolbar = ttk.Frame(self)
+        toolbar = ctk.CTkFrame(self)
         toolbar.pack(fill=tk.X, padx=8, pady=8)
-        ttk.Button(toolbar, text="Ajouter", command=self._add).pack(side=tk.LEFT)
-        ttk.Button(toolbar, text="Modifier", command=self._edit).pack(
+        ctk.CTkButton(toolbar, text="Ajouter", command=self._add).pack(side=tk.LEFT)
+        ctk.CTkButton(toolbar, text="Modifier", command=self._edit).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(toolbar, text="Supprimer", command=self._delete).pack(side=tk.LEFT)
-        ttk.Button(toolbar, text="Importer", command=self._import).pack(
+        ctk.CTkButton(toolbar, text="Supprimer", command=self._delete).pack(side=tk.LEFT)
+        ctk.CTkButton(toolbar, text="Importer", command=self._import).pack(
             side=tk.LEFT, padx=4
         )
 
         content = ttk.Panedwindow(self, orient=tk.HORIZONTAL)
         content.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
 
-        recipes_frame = ttk.Frame(content)
+        recipes_frame = ctk.CTkFrame(content)
         content.add(recipes_frame, weight=3)
 
         self.tree = ttk.Treeview(
@@ -450,41 +450,41 @@ class RecipesTab(ttk.Frame):
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self._on_recipe_select)
 
-        ingredients_frame = ttk.Frame(content)
+        ingredients_frame = ctk.CTkFrame(content)
         content.add(ingredients_frame, weight=2)
 
-        ttk.Label(ingredients_frame, text="Ingrédients").pack(
+        ctk.CTkLabel(ingredients_frame, text="Ingrédients").pack(
             anchor="w", pady=(0, 6)
         )
 
-        search_frame = ttk.Frame(ingredients_frame)
+        search_frame = ctk.CTkFrame(ingredients_frame)
         search_frame.pack(fill=tk.X, pady=(0, 6))
-        ttk.Label(search_frame, text="Recherche").grid(
+        ctk.CTkLabel(search_frame, text="Recherche").grid(
             row=0, column=0, sticky="w"
         )
-        search_entry = ttk.Entry(
+        search_entry = ctk.CTkEntry(
             search_frame, textvariable=self.search_var, width=20
         )
         search_entry.grid(row=0, column=1, sticky="ew", padx=(4, 8))
         search_entry.bind("<KeyRelease>", self._on_search_changed)
 
-        ttk.Label(search_frame, text="Ingrédient").grid(
+        ctk.CTkLabel(search_frame, text="Ingrédient").grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
-        self.ingredient_combo = ttk.Combobox(
-            search_frame, textvariable=self.ingredient_var, state="readonly", width=24
+        self.ingredient_combo = ctk.CTkComboBox(
+            search_frame, variable=self.ingredient_var, width=200
         )
         self.ingredient_combo.grid(
             row=1, column=1, sticky="ew", padx=(4, 8), pady=(4, 0)
         )
 
-        ttk.Label(search_frame, text="Quantité").grid(
+        ctk.CTkLabel(search_frame, text="Quantité").grid(
             row=2, column=0, sticky="w", pady=(4, 0)
         )
-        ttk.Entry(search_frame, textvariable=self.quantity_var, width=10).grid(
+        ctk.CTkEntry(search_frame, textvariable=self.quantity_var, width=80).grid(
             row=2, column=1, sticky="w", padx=(4, 8), pady=(4, 0)
         )
-        ttk.Button(
+        ctk.CTkButton(
             search_frame, text="Ajouter", command=self._add_ingredient
         ).grid(row=2, column=2, sticky="e", pady=(4, 0))
         search_frame.columnconfigure(1, weight=1)
@@ -503,12 +503,12 @@ class RecipesTab(ttk.Frame):
         self.ingredients_tree.column("unit", width=80, anchor="w")
         self.ingredients_tree.pack(fill=tk.BOTH, expand=True, pady=(8, 4))
 
-        ingredient_buttons = ttk.Frame(ingredients_frame)
+        ingredient_buttons = ctk.CTkFrame(ingredients_frame)
         ingredient_buttons.pack(fill=tk.X)
-        ttk.Button(
+        ctk.CTkButton(
             ingredient_buttons, text="Modifier", command=self._edit_ingredient
         ).pack(side=tk.LEFT)
-        ttk.Button(
+        ctk.CTkButton(
             ingredient_buttons, text="Supprimer", command=self._delete_ingredient
         ).pack(side=tk.LEFT, padx=4)
 
@@ -598,7 +598,7 @@ class RecipesTab(ttk.Frame):
     def _refresh_ingredient_options(self):
         self.ingredients = ingredient_service.list_ingredients()
         filtered = self._filter_ingredients(self.search_var.get())
-        self.ingredient_combo["values"] = filtered
+        self.ingredient_combo.configure(values=filtered)
         if filtered:
             self.ingredient_var.set(filtered[0])
         else:
@@ -616,7 +616,7 @@ class RecipesTab(ttk.Frame):
 
     def _on_search_changed(self, _event):
         filtered = self._filter_ingredients(self.search_var.get())
-        self.ingredient_combo["values"] = filtered
+        self.ingredient_combo.configure(values=filtered)
         if filtered and self.ingredient_var.get() not in filtered:
             self.ingredient_var.set(filtered[0])
         elif not filtered:
@@ -722,7 +722,7 @@ class RecipesTab(ttk.Frame):
         self._refresh_recipe_ingredients()
 
 
-class ShoppingListTab(ttk.Frame):
+class ShoppingListTab(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.recipes = []
@@ -771,7 +771,7 @@ class ShoppingListTab(ttk.Frame):
         canvas.configure(yscrollcommand=scrollbar.set)
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        container = ttk.Frame(canvas, padding=8)
+        container = ctk.CTkFrame(canvas)
         container_id = canvas.create_window((0, 0), window=container, anchor="nw")
         container.bind(
             "<Configure>",
@@ -787,43 +787,49 @@ class ShoppingListTab(ttk.Frame):
         selection_frame.columnconfigure(0, weight=1)
         selection_frame.columnconfigure(1, weight=1)
 
-        recipes_frame = ttk.Frame(selection_frame)
+        recipes_frame = ctk.CTkFrame(selection_frame)
         recipes_frame.grid(row=0, column=0, sticky="nsew", padx=(4, 8), pady=4)
         recipes_frame.columnconfigure(0, weight=1)
-        ttk.Label(recipes_frame, text="Recettes").grid(
+        ctk.CTkLabel(recipes_frame, text="Recettes").grid(
             row=0, column=0, columnspan=2, sticky="w"
         )
-        filters_frame = ttk.Frame(recipes_frame)
+        filters_frame = ctk.CTkFrame(recipes_frame)
         filters_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(4, 0))
         filters_frame.columnconfigure(1, weight=1)
         filters_frame.columnconfigure(3, weight=1)
-        ttk.Label(filters_frame, text="Recherche").grid(
+        ctk.CTkLabel(filters_frame, text="Recherche").grid(
             row=0, column=0, sticky="w"
         )
-        ttk.Entry(filters_frame, textvariable=self.recipe_search_var).grid(
+        ctk.CTkEntry(filters_frame, textvariable=self.recipe_search_var).grid(
             row=0, column=1, sticky="ew", padx=(4, 8)
         )
-        ttk.Label(filters_frame, text="Temps").grid(
+        ctk.CTkLabel(filters_frame, text="Temps").grid(
             row=0, column=2, sticky="w"
         )
-        self.recipe_time_combo = ttk.Combobox(
-            filters_frame, textvariable=self.recipe_time_var, state="readonly"
+        self.recipe_time_combo = ctk.CTkComboBox(
+            filters_frame,
+            variable=self.recipe_time_var,
+            command=self._on_recipe_filter_changed,
         )
         self.recipe_time_combo.grid(row=0, column=3, sticky="ew")
-        ttk.Label(filters_frame, text="Difficulté").grid(
+        ctk.CTkLabel(filters_frame, text="Difficulté").grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
-        self.recipe_difficulty_combo = ttk.Combobox(
-            filters_frame, textvariable=self.recipe_difficulty_var, state="readonly"
+        self.recipe_difficulty_combo = ctk.CTkComboBox(
+            filters_frame,
+            variable=self.recipe_difficulty_var,
+            command=self._on_recipe_filter_changed,
         )
         self.recipe_difficulty_combo.grid(
             row=1, column=1, sticky="ew", padx=(4, 8), pady=(4, 0)
         )
-        ttk.Label(filters_frame, text="Saison").grid(
+        ctk.CTkLabel(filters_frame, text="Saison").grid(
             row=1, column=2, sticky="w", pady=(4, 0)
         )
-        self.recipe_season_combo = ttk.Combobox(
-            filters_frame, textvariable=self.recipe_season_var, state="readonly"
+        self.recipe_season_combo = ctk.CTkComboBox(
+            filters_frame,
+            variable=self.recipe_season_var,
+            command=self._on_recipe_filter_changed,
         )
         self.recipe_season_combo.grid(
             row=1, column=3, sticky="ew", pady=(4, 0)
@@ -834,13 +840,13 @@ class ShoppingListTab(ttk.Frame):
         self.available_recipes_list.grid(
             row=2, column=0, rowspan=2, sticky="nsew", pady=(4, 0)
         )
-        ttk.Button(recipes_frame, text="Ajouter ➜", command=self._add_recipe).grid(
+        ctk.CTkButton(recipes_frame, text="Ajouter ➜", command=self._add_recipe).grid(
             row=2, column=1, sticky="ew", padx=4, pady=(4, 2)
         )
-        ttk.Button(recipes_frame, text="Retirer", command=self._remove_recipe).grid(
+        ctk.CTkButton(recipes_frame, text="Retirer", command=self._remove_recipe).grid(
             row=3, column=1, sticky="ew", padx=4
         )
-        ttk.Label(recipes_frame, text="Sélectionnées").grid(
+        ctk.CTkLabel(recipes_frame, text="Sélectionnées").grid(
             row=4, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
         self.selected_recipes_list = tk.Listbox(
@@ -850,76 +856,81 @@ class ShoppingListTab(ttk.Frame):
             row=5, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
         )
 
-        manual_frame = ttk.Frame(selection_frame)
+        manual_frame = ctk.CTkFrame(selection_frame)
         manual_frame.grid(row=0, column=1, sticky="nsew", padx=(8, 4), pady=4)
         manual_frame.columnconfigure(1, weight=1)
-        ttk.Label(manual_frame, text="Article manuel").grid(
+        ctk.CTkLabel(manual_frame, text="Article manuel").grid(
             row=0, column=0, columnspan=2, sticky="w"
         )
-        ttk.Label(manual_frame, text="Recherche").grid(
+        ctk.CTkLabel(manual_frame, text="Recherche").grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
-        ttk.Entry(manual_frame, textvariable=self.manual_search_var).grid(
+        ctk.CTkEntry(manual_frame, textvariable=self.manual_search_var).grid(
             row=1, column=1, sticky="ew", pady=(4, 0)
         )
-        ttk.Label(manual_frame, text="Saison").grid(
+        ctk.CTkLabel(manual_frame, text="Saison").grid(
             row=2, column=0, sticky="w", pady=(4, 0)
         )
-        self.manual_season_combo = ttk.Combobox(
-            manual_frame, textvariable=self.manual_season_var, state="readonly"
+        self.manual_season_combo = ctk.CTkComboBox(
+            manual_frame,
+            variable=self.manual_season_var,
+            command=self._on_manual_filter_changed,
         )
         self.manual_season_combo.grid(row=2, column=1, sticky="ew", pady=(4, 0))
-        ttk.Label(manual_frame, text="Filtre rayon").grid(
+        ctk.CTkLabel(manual_frame, text="Filtre rayon").grid(
             row=3, column=0, sticky="w", pady=(4, 0)
         )
-        self.manual_filter_aisle_combo = ttk.Combobox(
-            manual_frame, textvariable=self.manual_filter_aisle_var, state="readonly"
+        self.manual_filter_aisle_combo = ctk.CTkComboBox(
+            manual_frame,
+            variable=self.manual_filter_aisle_var,
+            command=self._on_manual_filter_changed,
         )
         self.manual_filter_aisle_combo.grid(
             row=3, column=1, sticky="ew", pady=(4, 0)
         )
-        ttk.Label(manual_frame, text="Filtre unité").grid(
+        ctk.CTkLabel(manual_frame, text="Filtre unité").grid(
             row=4, column=0, sticky="w", pady=(4, 0)
         )
-        self.manual_filter_unit_combo = ttk.Combobox(
-            manual_frame, textvariable=self.manual_filter_unit_var, state="readonly"
+        self.manual_filter_unit_combo = ctk.CTkComboBox(
+            manual_frame,
+            variable=self.manual_filter_unit_var,
+            command=self._on_manual_filter_changed,
         )
         self.manual_filter_unit_combo.grid(
             row=4, column=1, sticky="ew", pady=(4, 0)
         )
-        ttk.Label(manual_frame, text="Ingrédient").grid(
+        ctk.CTkLabel(manual_frame, text="Ingrédient").grid(
             row=5, column=0, sticky="w", pady=(4, 0)
         )
-        self.manual_ingredient_combo = ttk.Combobox(
-            manual_frame, textvariable=self.manual_ingredient_var
+        self.manual_ingredient_combo = ctk.CTkComboBox(
+            manual_frame,
+            variable=self.manual_ingredient_var,
+            command=self._on_manual_ingredient_selected,
         )
         self.manual_ingredient_combo.grid(
             row=5, column=1, sticky="ew", pady=(4, 0)
         )
-        self.manual_ingredient_combo.bind(
-            "<<ComboboxSelected>>", self._on_manual_ingredient_selected
-        )
-        ttk.Label(manual_frame, text="Quantité").grid(
+        ctk.CTkLabel(manual_frame, text="Quantité").grid(
             row=6, column=0, sticky="w", pady=(4, 0)
         )
-        ttk.Entry(manual_frame, textvariable=self.manual_quantity_var).grid(
+        ctk.CTkEntry(manual_frame, textvariable=self.manual_quantity_var).grid(
             row=6, column=1, sticky="ew", pady=(4, 0)
         )
-        ttk.Label(manual_frame, text="Unité").grid(
+        ctk.CTkLabel(manual_frame, text="Unité").grid(
             row=7, column=0, sticky="w", pady=(4, 0)
         )
-        self.manual_unit_combo = ttk.Combobox(
-            manual_frame, textvariable=self.manual_unit_var, state="readonly"
+        self.manual_unit_combo = ctk.CTkComboBox(
+            manual_frame, variable=self.manual_unit_var
         )
         self.manual_unit_combo.grid(row=7, column=1, sticky="ew", pady=(4, 0))
-        ttk.Label(manual_frame, text="Rayon").grid(
+        ctk.CTkLabel(manual_frame, text="Rayon").grid(
             row=8, column=0, sticky="w", pady=(4, 0)
         )
-        self.manual_aisle_combo = ttk.Combobox(
-            manual_frame, textvariable=self.manual_aisle_var, state="readonly"
+        self.manual_aisle_combo = ctk.CTkComboBox(
+            manual_frame, variable=self.manual_aisle_var
         )
         self.manual_aisle_combo.grid(row=8, column=1, sticky="ew", pady=(4, 0))
-        ttk.Button(manual_frame, text="Ajouter", command=self._add_manual_item).grid(
+        ctk.CTkButton(manual_frame, text="Ajouter", command=self._add_manual_item).grid(
             row=9, column=1, sticky="e", pady=(6, 6)
         )
         self.manual_items_tree = ttk.Treeview(
@@ -939,32 +950,14 @@ class ShoppingListTab(ttk.Frame):
         self.manual_items_tree.grid(
             row=10, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
         )
-        ttk.Button(
+        ctk.CTkButton(
             manual_frame, text="Supprimer", command=self._remove_manual_item
         ).grid(row=11, column=1, sticky="e", pady=(4, 0))
         self.manual_search_var.trace_add("write", self._on_manual_filter_changed)
-        self.manual_season_combo.bind(
-            "<<ComboboxSelected>>", self._on_manual_filter_changed
-        )
-        self.manual_filter_aisle_combo.bind(
-            "<<ComboboxSelected>>", self._on_manual_filter_changed
-        )
-        self.manual_filter_unit_combo.bind(
-            "<<ComboboxSelected>>", self._on_manual_filter_changed
-        )
         self.manual_ingredient_var.trace_add(
             "write", self._on_manual_ingredient_changed
         )
         self.recipe_search_var.trace_add("write", self._on_recipe_filter_changed)
-        self.recipe_time_combo.bind(
-            "<<ComboboxSelected>>", self._on_recipe_filter_changed
-        )
-        self.recipe_difficulty_combo.bind(
-            "<<ComboboxSelected>>", self._on_recipe_filter_changed
-        )
-        self.recipe_season_combo.bind(
-            "<<ComboboxSelected>>", self._on_recipe_filter_changed
-        )
 
         preview_frame = ttk.LabelFrame(container, text="Section 1 - Aperçu")
         preview_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=(8, 4))
@@ -1011,9 +1004,9 @@ class ShoppingListTab(ttk.Frame):
 
     def _refresh_recipe_filter_options(self):
         season_names = [season["name"] for season in self.seasons]
-        self.recipe_time_combo["values"] = ["Tous"] + recipes_service.TIME_OPTIONS
-        self.recipe_difficulty_combo["values"] = ["Tous"] + recipes_service.DIFFICULTY_OPTIONS
-        self.recipe_season_combo["values"] = ["Toutes"] + season_names
+        self.recipe_time_combo.configure(values=["Tous"] + recipes_service.TIME_OPTIONS)
+        self.recipe_difficulty_combo.configure(values=["Tous"] + recipes_service.DIFFICULTY_OPTIONS)
+        self.recipe_season_combo.configure(values=["Toutes"] + season_names)
         if not self.recipe_time_var.get():
             self.recipe_time_var.set("Tous")
         if not self.recipe_difficulty_var.get():
@@ -1072,11 +1065,11 @@ class ShoppingListTab(ttk.Frame):
         unit_names = [unit["name"] for unit in self.units]
         aisle_names = [aisle["name"] for aisle in self.aisles]
         season_names = [season["name"] for season in self.seasons]
-        self.manual_unit_combo["values"] = unit_names
-        self.manual_aisle_combo["values"] = aisle_names
-        self.manual_season_combo["values"] = ["Toutes"] + season_names
-        self.manual_filter_aisle_combo["values"] = ["Tous"] + aisle_names
-        self.manual_filter_unit_combo["values"] = ["Toutes"] + unit_names
+        self.manual_unit_combo.configure(values=unit_names)
+        self.manual_aisle_combo.configure(values=aisle_names)
+        self.manual_season_combo.configure(values=["Toutes"] + season_names)
+        self.manual_filter_aisle_combo.configure(values=["Tous"] + aisle_names)
+        self.manual_filter_unit_combo.configure(values=["Toutes"] + unit_names)
         if not self.manual_season_var.get():
             self.manual_season_var.set("Toutes")
         if not self.manual_filter_aisle_var.get():
@@ -1111,13 +1104,13 @@ class ShoppingListTab(ttk.Frame):
         self.ingredient_lookup = {
             ingredient["name"]: ingredient for ingredient in self.ingredients
         }
-        self.manual_ingredient_combo["values"] = [item["name"] for item in filtered]
+        self.manual_ingredient_combo.configure(values=[item["name"] for item in filtered])
         self._sync_selected_ingredient()
 
     def _on_manual_filter_changed(self, *_):
         self._refresh_ingredient_options()
 
-    def _on_manual_ingredient_selected(self, _event):
+    def _on_manual_ingredient_selected(self, *_):
         self._sync_selected_ingredient()
 
     def _on_manual_ingredient_changed(self, *_):
@@ -1143,8 +1136,8 @@ class ShoppingListTab(ttk.Frame):
 
     def _clear_selected_ingredient(self):
         self.selected_ingredient = None
-        self.manual_unit_combo.configure(state="readonly")
-        self.manual_aisle_combo.configure(state="readonly")
+        self.manual_unit_combo.configure(state="normal")
+        self.manual_aisle_combo.configure(state="normal")
 
     def _add_recipe(self):
         selection = self.available_recipes_list.curselection()
@@ -1350,7 +1343,7 @@ class ShoppingListTab(ttk.Frame):
         return f"{quantity:g}"
 
 
-class RecipesApp(tk.Tk):
+class RecipesApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Recettes et liste de courses")
@@ -1362,14 +1355,21 @@ class RecipesApp(tk.Tk):
         self._build()
 
     def _build(self):
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill=tk.BOTH, expand=True)
-        notebook.add(IngredientsTab(notebook), text="Ingrédients")
-        notebook.add(RecipesTab(notebook), text="Recettes")
-        notebook.add(ShoppingListTab(notebook), text="Liste de courses")
+        tabview = ctk.CTkTabview(self)
+        tabview.pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
+
+        ingredients_tab = tabview.add("Ingrédients")
+        recipes_tab = tabview.add("Recettes")
+        shopping_tab = tabview.add("Liste de courses")
+
+        IngredientsTab(ingredients_tab).pack(fill=tk.BOTH, expand=True)
+        RecipesTab(recipes_tab).pack(fill=tk.BOTH, expand=True)
+        ShoppingListTab(shopping_tab).pack(fill=tk.BOTH, expand=True)
 
 
 def main():
+    ctk.set_appearance_mode("system")
+    ctk.set_default_color_theme("blue")
     app = RecipesApp()
     app.mainloop()
 
