@@ -5,12 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from db.connection import get_connection
-from services.recipes import (
-    DIFFICULTY_OPTIONS,
-    TIME_OPTIONS,
-    normalize_difficulty,
-    normalize_time_label,
-)
+from services.recipes import TIME_OPTIONS, normalize_difficulty, normalize_time_label
 
 
 class IngredientImportError(ValueError):
@@ -122,10 +117,14 @@ def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
                 f"La recette #{index} doit contenir un texte 'difficulty'."
             )
         cleaned_difficulty = difficulty.strip()
-        if cleaned_difficulty and cleaned_difficulty not in DIFFICULTY_OPTIONS:
-            raise RecipeImportError(
-                f"La recette #{index} contient une difficulté invalide."
-            )
+        normalized_difficulty: str | None = None
+        if cleaned_difficulty:
+            try:
+                normalized_difficulty = normalize_difficulty(cleaned_difficulty)
+            except ValueError as exc:
+                raise RecipeImportError(
+                    f"La recette #{index} contient une difficulté invalide."
+                ) from exc
 
         ingredients = recipe.get("ingredients", [])
         if ingredients is None:
@@ -161,7 +160,7 @@ def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
                 "name": name,
                 "instructions": instructions.strip(),
                 "time_label": cleaned_time_label or None,
-                "difficulty": cleaned_difficulty or None,
+                "difficulty": normalized_difficulty,
                 "ingredients": parsed_ingredients,
             }
         )
