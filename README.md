@@ -31,8 +31,8 @@ tests/      # Tests unitaires
 
 - **Onglet Ingrédients** : Ajouter, modifier ou supprimer des ingrédients. Chaque ingrédient comprend un rayon par défaut, une unité et des saisons optionnelles.
 - **Import JSON** : Utilisez le bouton « Importer » dans l'onglet Ingrédients pour importer un fichier JSON d'ingrédients.
-- **Onglet Recettes** : Espace réservé pour le CRUD des recettes à venir.
-- **Onglet Liste de courses** : Espace réservé pour le générateur de liste et l'export à venir.
+- **Onglet Recettes** : Créez vos recettes avec le temps, la difficulté et le nombre de personnes. Ajoutez ensuite les ingrédients et leurs quantités.
+- **Onglet Liste de courses** : Sélectionnez des recettes, ajustez le nombre de personnes par recette et générez automatiquement la liste consolidée.
 
 ### Format d'import JSON
 
@@ -51,7 +51,7 @@ L'importateur attend un fichier JSON avec un objet racine contenant une liste `i
 }
 ```
 
-L'importateur de recettes attend un fichier JSON avec un objet racine contenant une liste `recipes`. Chaque recette nécessite `name`, `difficulty`, `time_minutes`, `instructions` (facultatif) et une liste `ingredients` (facultative). Chaque entrée d'ingrédient doit référencer un nom d'ingrédient existant et inclure une `quantity` numérique. `difficulty` doit être l'une des valeurs suivantes : `facile`, `moyen`, `difficile` (ne pas utiliser `easy`, `medium`, `hard`). `time_minutes` doit être un entier positif représentant la durée totale en minutes.
+L'importateur de recettes attend un fichier JSON avec un objet racine contenant une liste `recipes`. Chaque recette nécessite `name`, `difficulty`, `time` (facultatif), `instructions` (facultatif) et une liste `ingredients` (facultative). Le champ `servings` est optionnel et représente le nombre de personnes (entier positif). Chaque entrée d'ingrédient doit référencer un nom d'ingrédient existant et inclure une `quantity` numérique. `difficulty` peut être l'une des valeurs suivantes : `facile`, `moyen`, `difficile` (les équivalents `easy`, `medium`, `hard` sont acceptés). `time` doit correspondre à l'une des valeurs disponibles dans l'application (ex. `15min`, `30`, `45`, `1h`, `1h30`).
 
 ```json
 {
@@ -59,7 +59,8 @@ L'importateur de recettes attend un fichier JSON avec un objet racine contenant 
     {
       "name": "Salade tomate",
       "difficulty": "facile",
-      "time_minutes": 10,
+      "time": "15min",
+      "servings": 2,
       "instructions": "Couper les tomates et assaisonner.",
       "ingredients": [
         {
@@ -83,8 +84,9 @@ You are helping me create a JSON payload for a recipe importer. The JSON must fo
   "recipes": [
     {
       "name": string,                          // required
-      "difficulty": string,                    // required: facile | moyen | difficile
-      "time_minutes": number,                  // required: positive integer (minutes)
+      "difficulty": string,                    // required: facile | moyen | difficile (easy|medium|hard accepted)
+      "time": string,                          // optional: 15min | 30 | 45 | 1h | 1h30 | 2h | 2h30 | 3h | 3h30 | 4h+
+      "servings": number,                      // optional: positive integer
       "instructions": string (optional),
       "ingredients": [
         {
@@ -97,13 +99,14 @@ You are helping me create a JSON payload for a recipe importer. The JSON must fo
 }
 
 Rules:
-1) Ask me clarifying questions if any required information is missing (recipe name, difficulty, total time in minutes, ingredient names, quantities, or optional instructions if I want to include them).
-2) Difficulty must be one of: facile, moyen, difficile (do not use easy, medium, hard).
-3) time_minutes must be a positive integer representing the total time in minutes (for example 10, 45, 120).
-4) If I provide an ingredient list without quantities, ask for each quantity.
-5) If I provide quantities but no units, do not add units (quantities are numeric only).
-6) If I provide multiple recipes, output a JSON array with one object per recipe.
-7) Once you have all required info, respond ONLY with the final JSON and no extra text.
+1) Ask me clarifying questions if any required information is missing (recipe name, difficulty, ingredient names, quantities, or optional instructions if I want to include them).
+2) Difficulty must be one of: facile, moyen, difficile (easy/medium/hard are accepted aliases).
+3) If I provide a total time, use one of the allowed time labels (15min, 30, 45, 1h, 1h30, 2h, 2h30, 3h, 3h30, 4h+).
+4) If I provide a number of servings, ensure it is a positive integer.
+5) If I provide an ingredient list without quantities, ask for each quantity.
+6) If I provide quantities but no units, do not add units (quantities are numeric only).
+7) If I provide multiple recipes, output a JSON array with one object per recipe.
+8) Once you have all required info, respond ONLY with the final JSON and no extra text.
 
 Now, here is what I know so far:
 <paste recipe name, optional instructions, and ingredient list here>
