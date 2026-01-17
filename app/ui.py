@@ -762,12 +762,36 @@ class ShoppingListTab(ttk.Frame):
         self.preview_tree = None
         self.grouped_tree = None
         self.selected_ingredient = None
+        self._scroll_canvas = None
         self._build()
         self._load_data()
 
     def _build(self):
-        container = ttk.Frame(self, padding=8)
-        container.pack(fill=tk.BOTH, expand=True)
+        self._scroll_canvas = tk.Canvas(self, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(
+            self, orient="vertical", command=self._scroll_canvas.yview
+        )
+        self._scroll_canvas.configure(yscrollcommand=scrollbar.set)
+        self._scroll_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        container = ttk.Frame(self._scroll_canvas, padding=8)
+        container_id = self._scroll_canvas.create_window(
+            (0, 0), window=container, anchor="nw"
+        )
+        container.bind(
+            "<Configure>",
+            lambda _event: self._scroll_canvas.configure(
+                scrollregion=self._scroll_canvas.bbox("all")
+            ),
+        )
+        self._scroll_canvas.bind(
+            "<Configure>",
+            lambda event: self._scroll_canvas.itemconfigure(
+                container_id, width=event.width
+            ),
+        )
+        container.bind("<Enter>", self._bind_mousewheel)
+        container.bind("<Leave>", self._unbind_mousewheel)
 
         selection_frame = ttk.LabelFrame(container, text="Sélection")
         selection_frame.pack(fill=tk.X, padx=4, pady=4)
@@ -984,6 +1008,26 @@ class ShoppingListTab(ttk.Frame):
         self.grouped_tree.column("quantity", width=100, anchor="center")
         self.grouped_tree.column("unit", width=100, anchor="center")
         self.grouped_tree.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+    def _bind_mousewheel(self, _event):
+        self.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.bind_all("<Button-4>", self._on_mousewheel)
+        self.bind_all("<Button-5>", self._on_mousewheel)
+
+    def _unbind_mousewheel(self, _event):
+        self.unbind_all("<MouseWheel>")
+        self.unbind_all("<Button-4>")
+        self.unbind_all("<Button-5>")
+
+    def _on_mousewheel(self, event):
+        if not self._scroll_canvas:
+            return
+        if event.num == 4:
+            self._scroll_canvas.yview_scroll(-1, "units")
+        elif event.num == 5:
+            self._scroll_canvas.yview_scroll(1, "units")
+        else:
+            self._scroll_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def _load_data(self):
         self.aisles = ingredient_service.list_aisles()
@@ -1341,7 +1385,10 @@ class RecipesApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Recettes et liste de courses")
-        self.geometry("800x500")
+        try:
+            self.state("zoomed")
+        except tk.TclError:
+            self.attributes("-zoomed", True)
         initialize_database()
         self._build()
 
