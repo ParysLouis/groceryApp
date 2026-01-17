@@ -1460,12 +1460,23 @@ class RecipesApp(ctk.CTk):
             "Treeview.Heading",
             font=self.tk_heading_font,
         )
+        initialize_database()
+        self._build()
+        self._maximize_window()
+
+    def _maximize_window(self):
+        self.update_idletasks()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        self.geometry(f"{screen_width}x{screen_height}+0+0")
         try:
             self.state("zoomed")
         except tk.TclError:
+            pass
+        try:
             self.attributes("-zoomed", True)
-        initialize_database()
-        self._build()
+        except tk.TclError:
+            pass
 
     def _build(self):
         tabview = ctk.CTkTabview(self)
