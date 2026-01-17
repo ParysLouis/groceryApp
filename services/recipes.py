@@ -54,11 +54,24 @@ def normalize_difficulty(difficulty: str | None) -> str | None:
     return _DIFFICULTY_LOOKUP[cleaned]
 
 
+def normalize_servings(servings: int | None) -> int:
+    if servings is None:
+        return 1
+    try:
+        servings_value = int(servings)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid servings selection.") from exc
+    if servings_value <= 0:
+        raise ValueError("Invalid servings selection.")
+    return servings_value
+
+
 def create_recipe(
     name: str,
     instructions: str | None,
     time_label: str | None = None,
     difficulty: str | None = None,
+    servings: int | None = None,
     db_path: str | None = None,
 ) -> int:
     cleaned_name = name.strip()
@@ -68,18 +81,27 @@ def create_recipe(
     cleaned_instructions = instructions.strip() if instructions else None
     normalized_time_label, total_minutes = normalize_time_label(time_label)
     normalized_difficulty = normalize_difficulty(difficulty)
+    normalized_servings = normalize_servings(servings)
 
     with get_connection(db_path) as connection:
         cursor = connection.execute(
             """
-            INSERT INTO recipe (name, total_minutes, time_label, difficulty, notes)
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO recipe (
+                name,
+                total_minutes,
+                time_label,
+                difficulty,
+                servings,
+                notes
+            )
+            VALUES (?, ?, ?, ?, ?, ?);
             """,
             (
                 cleaned_name,
                 total_minutes,
                 normalized_time_label,
                 normalized_difficulty,
+                normalized_servings,
                 cleaned_instructions,
             ),
         )
@@ -98,6 +120,7 @@ def list_recipes(
                        name,
                        time_label,
                        difficulty,
+                       servings,
                        notes AS instructions
                 FROM recipe
                 ORDER BY name ASC;
@@ -110,6 +133,7 @@ def list_recipes(
                        recipe.name,
                        recipe.time_label,
                        recipe.difficulty,
+                       recipe.servings,
                        recipe.notes AS instructions
                 FROM recipe
                 WHERE NOT EXISTS (
@@ -144,6 +168,7 @@ def get_recipe(recipe_id: int, db_path: str | None = None) -> dict | None:
                    name,
                    time_label,
                    difficulty,
+                   servings,
                    notes AS instructions
             FROM recipe
             WHERE id = ?;
@@ -159,6 +184,7 @@ def update_recipe(
     instructions: str | None,
     time_label: str | None = None,
     difficulty: str | None = None,
+    servings: int | None = None,
     db_path: str | None = None,
 ) -> None:
     cleaned_name = name.strip()
@@ -168,6 +194,7 @@ def update_recipe(
     cleaned_instructions = instructions.strip() if instructions else None
     normalized_time_label, total_minutes = normalize_time_label(time_label)
     normalized_difficulty = normalize_difficulty(difficulty)
+    normalized_servings = normalize_servings(servings)
 
     with get_connection(db_path) as connection:
         connection.execute(
@@ -177,6 +204,7 @@ def update_recipe(
                 total_minutes = ?,
                 time_label = ?,
                 difficulty = ?,
+                servings = ?,
                 notes = ?
             WHERE id = ?;
             """,
@@ -185,6 +213,7 @@ def update_recipe(
                 total_minutes,
                 normalized_time_label,
                 normalized_difficulty,
+                normalized_servings,
                 cleaned_instructions,
                 recipe_id,
             ),

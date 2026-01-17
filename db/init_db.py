@@ -21,6 +21,7 @@ def ensure_recipe_columns(connection) -> None:
     missing = {
         "time_label": "TEXT",
         "difficulty": "TEXT",
+        "servings": "INTEGER NOT NULL DEFAULT 1",
     }
     for column, definition in missing.items():
         if column not in columns:

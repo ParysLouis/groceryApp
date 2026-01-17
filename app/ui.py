@@ -288,6 +288,9 @@ class RecipeDialog(ctk.CTkToplevel):
         self.name_var = tk.StringVar(value=recipe["name"] if recipe else "")
         self.time_var = tk.StringVar()
         self.difficulty_var = tk.StringVar()
+        self.servings_var = tk.StringVar(
+            value=str(recipe.get("servings", 1)) if recipe else "1"
+        )
         self.instructions_text = None
         self.body_font = body_font
         self._build()
@@ -338,10 +341,19 @@ class RecipeDialog(ctk.CTkToplevel):
         )
         self.difficulty_combo.grid(row=3, column=1, sticky="w", pady=(6, 0))
 
+        ctk.CTkLabel(body, text="Personnes", font=self.body_font).grid(
+            row=4, column=0, sticky="w", pady=(6, 0)
+        )
+        ctk.CTkEntry(
+            body, textvariable=self.servings_var, width=80, font=self.body_font
+        ).grid(
+            row=4, column=1, sticky="w", pady=(6, 0)
+        )
+
         self._populate_defaults(time_options, difficulty_options)
 
         button_frame = ctk.CTkFrame(body)
-        button_frame.grid(row=4, column=0, columnspan=2, pady=(12, 0), sticky="e")
+        button_frame.grid(row=5, column=0, columnspan=2, pady=(12, 0), sticky="e")
         ctk.CTkButton(button_frame, text="Annuler", command=self.destroy).pack(
             side=tk.RIGHT, padx=(8, 0)
         )
@@ -373,11 +385,26 @@ class RecipeDialog(ctk.CTkToplevel):
         instructions = self.instructions_text.get("1.0", tk.END).strip()
         time_label = self.time_var.get().strip()
         difficulty = self.difficulty_var.get().strip()
+        servings_text = self.servings_var.get().strip()
+        try:
+            servings = int(servings_text)
+        except ValueError:
+            messagebox.showerror(
+                "Validation", "Le nombre de personnes doit être un entier."
+            )
+            return
+        if servings <= 0:
+            messagebox.showerror(
+                "Validation",
+                "Le nombre de personnes doit être supérieur à zéro.",
+            )
+            return
         self.result = {
             "name": name,
             "instructions": instructions,
             "time_label": time_label,
             "difficulty": difficulty,
+            "servings": servings,
         }
         self.destroy()
 
@@ -475,17 +502,19 @@ class RecipesTab(ctk.CTkFrame):
 
         self.tree = ttk.Treeview(
             recipes_frame,
-            columns=("name", "time", "difficulty", "instructions"),
+            columns=("name", "time", "difficulty", "servings", "instructions"),
             show="headings",
             height=12,
         )
         self.tree.heading("name", text="Nom")
         self.tree.heading("time", text="Temps")
         self.tree.heading("difficulty", text="Difficulté")
+        self.tree.heading("servings", text="Personnes")
         self.tree.heading("instructions", text="Instructions")
         self.tree.column("name", width=160, anchor="w")
         self.tree.column("time", width=80, anchor="center")
         self.tree.column("difficulty", width=90, anchor="center")
+        self.tree.column("servings", width=90, anchor="center")
         self.tree.column("instructions", width=320, anchor="w")
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self._on_recipe_select)
@@ -569,6 +598,7 @@ class RecipesTab(ctk.CTkFrame):
                     recipe["name"],
                     recipe.get("time_label") or "",
                     recipe.get("difficulty") or "",
+                    recipe.get("servings", 1),
                     recipe["instructions"] or "",
                 ),
             )
@@ -774,6 +804,7 @@ class ShoppingListTab(ctk.CTkFrame):
         self.recipes = []
         self.recipe_lookup = {}
         self.selected_recipe_ids = []
+        self.selected_recipe_servings = {}
         self.manual_items = {}
         self.manual_item_counter = 0
         self.aisles = []
@@ -787,6 +818,7 @@ class ShoppingListTab(ctk.CTkFrame):
         self.recipe_time_var = tk.StringVar()
         self.recipe_difficulty_vars = {}
         self.recipe_season_var = tk.StringVar()
+        self.recipe_servings_var = tk.StringVar()
         self.manual_search_var = tk.StringVar()
         self.manual_season_var = tk.StringVar()
         self.manual_filter_aisle_var = tk.StringVar()
@@ -923,6 +955,21 @@ class ShoppingListTab(ctk.CTkFrame):
         self.selected_recipes_list.grid(
             row=5, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
         )
+        self.selected_recipes_list.bind(
+            "<<ListboxSelect>>", self._on_selected_recipe_list
+        )
+        ctk.CTkLabel(recipes_frame, text="Personnes", font=self.body_font).grid(
+            row=6, column=0, sticky="w", pady=(8, 0)
+        )
+        ctk.CTkEntry(
+            recipes_frame,
+            textvariable=self.recipe_servings_var,
+            width=80,
+            font=self.body_font,
+        ).grid(row=6, column=1, sticky="ew", pady=(8, 0))
+        ctk.CTkButton(
+            recipes_frame, text="Appliquer", command=self._apply_recipe_servings
+        ).grid(row=7, column=1, sticky="ew", pady=(4, 0))
 
         manual_frame = ctk.CTkFrame(selection_frame)
         manual_frame.grid(row=0, column=1, sticky="nsew", padx=(8, 4), pady=4)
@@ -1126,6 +1173,8 @@ class ShoppingListTab(ctk.CTkFrame):
         self.seasons = ingredient_service.list_seasons()
         self.recipes = recipes_service.list_recipes()
         self.recipe_lookup = {recipe["id"]: recipe for recipe in self.recipes}
+        self.selected_recipe_servings = {}
+        self.recipe_servings_var.set("")
         self._refresh_recipe_filter_options()
         self._refresh_recipe_list()
         self._refresh_manual_options()
@@ -1190,11 +1239,30 @@ class ShoppingListTab(ctk.CTkFrame):
             for recipe_id in self.selected_recipe_ids
             if recipe_id in self.recipe_lookup
         ]
+        for recipe_id in self.selected_recipe_ids:
+            recipe = self.recipe_lookup.get(recipe_id)
+            if not recipe:
+                continue
+            base_servings = recipe.get("servings") or 1
+            self.selected_recipe_servings.setdefault(recipe_id, base_servings)
         self.selected_recipes_list.delete(0, tk.END)
         for recipe_id in self.selected_recipe_ids:
-            self.selected_recipes_list.insert(
-                tk.END, self.recipe_lookup[recipe_id]["name"]
+            recipe = self.recipe_lookup[recipe_id]
+            servings = self.selected_recipe_servings.get(
+                recipe_id, recipe.get("servings") or 1
             )
+            self.selected_recipes_list.insert(
+                tk.END, f"{recipe['name']} ({servings} pers.)"
+            )
+
+    def _get_selected_recipe_id(self):
+        selection = self.selected_recipes_list.curselection()
+        if not selection:
+            return None
+        index = selection[0]
+        if index >= len(self.selected_recipe_ids):
+            return None
+        return self.selected_recipe_ids[index]
 
     def _refresh_manual_options(self):
         unit_names = [unit["name"] for unit in self.units]
@@ -1259,6 +1327,40 @@ class ShoppingListTab(ctk.CTkFrame):
 
     def _on_recipe_filter_changed(self, *_):
         self._refresh_recipe_list()
+
+    def _on_selected_recipe_list(self, _event):
+        recipe_id = self._get_selected_recipe_id()
+        if recipe_id is None:
+            return
+        servings = self.selected_recipe_servings.get(
+            recipe_id, self.recipe_lookup.get(recipe_id, {}).get("servings", 1)
+        )
+        self.recipe_servings_var.set(str(servings))
+
+    def _apply_recipe_servings(self):
+        recipe_id = self._get_selected_recipe_id()
+        if recipe_id is None:
+            messagebox.showinfo(
+                "Sélection", "Choisissez une recette sélectionnée."
+            )
+            return
+        servings_text = self.recipe_servings_var.get().strip()
+        try:
+            servings = int(servings_text)
+        except ValueError:
+            messagebox.showerror(
+                "Validation", "Le nombre de personnes doit être un entier."
+            )
+            return
+        if servings <= 0:
+            messagebox.showerror(
+                "Validation",
+                "Le nombre de personnes doit être supérieur à zéro.",
+            )
+            return
+        self.selected_recipe_servings[recipe_id] = servings
+        self._refresh_selected_recipes_list()
+        self._refresh_previews()
 
     def _sync_selected_ingredient(self):
         name = self.manual_ingredient_var.get().strip()
@@ -1328,6 +1430,11 @@ class ShoppingListTab(ctk.CTkFrame):
             recipe_id = self.recipes[index]["id"]
             if recipe_id not in self.selected_recipe_ids:
                 self.selected_recipe_ids.append(recipe_id)
+                recipe = self.recipe_lookup.get(recipe_id)
+                if recipe:
+                    self.selected_recipe_servings.setdefault(
+                        recipe_id, recipe.get("servings") or 1
+                    )
         self._refresh_selected_recipes_list()
         self._refresh_previews()
 
@@ -1339,7 +1446,8 @@ class ShoppingListTab(ctk.CTkFrame):
             )
             return
         for index in reversed(selection):
-            self.selected_recipe_ids.pop(index)
+            recipe_id = self.selected_recipe_ids.pop(index)
+            self.selected_recipe_servings.pop(recipe_id, None)
         self._refresh_selected_recipes_list()
         self._refresh_previews()
 
@@ -1420,21 +1528,27 @@ class ShoppingListTab(ctk.CTkFrame):
             recipe = self.recipe_lookup.get(recipe_id)
             if not recipe:
                 continue
+            base_servings = recipe.get("servings") or 1
+            selected_servings = self.selected_recipe_servings.get(
+                recipe_id, base_servings
+            )
+            multiplier = selected_servings / base_servings
             parent = self.preview_tree.insert(
                 "",
                 tk.END,
-                text=recipe["name"],
+                text=f"{recipe['name']} ({selected_servings} pers.)",
                 values=("", ""),
             )
             for ingredient in recipes_service.list_recipe_ingredients_with_metadata(
                 recipe_id
             ):
+                scaled_quantity = float(ingredient["quantity"]) * multiplier
                 self.preview_tree.insert(
                     parent,
                     tk.END,
                     text=ingredient["ingredient_name"],
                     values=(
-                        self._format_quantity(ingredient["quantity"]),
+                        self._format_quantity(scaled_quantity),
                         ingredient["unit_name"],
                     ),
                 )
@@ -1492,6 +1606,14 @@ class ShoppingListTab(ctk.CTkFrame):
     def _build_shopping_items(self):
         items = []
         for recipe_id in self.selected_recipe_ids:
+            recipe = self.recipe_lookup.get(recipe_id)
+            if not recipe:
+                continue
+            base_servings = recipe.get("servings") or 1
+            selected_servings = self.selected_recipe_servings.get(
+                recipe_id, base_servings
+            )
+            multiplier = selected_servings / base_servings
             for ingredient in recipes_service.list_recipe_ingredients_with_metadata(
                 recipe_id
             ):
@@ -1501,7 +1623,7 @@ class ShoppingListTab(ctk.CTkFrame):
                         aisle_name=ingredient["aisle_name"],
                         aisle_order=ingredient["aisle_order"],
                         unit=ingredient["unit_name"],
-                        quantity=float(ingredient["quantity"]),
+                        quantity=float(ingredient["quantity"]) * multiplier,
                     )
                 )
         for item in self.manual_items.values():

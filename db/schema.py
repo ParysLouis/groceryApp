@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS recipe (
     total_minutes INTEGER NOT NULL,
     time_label TEXT,
     difficulty TEXT,
+    servings INTEGER NOT NULL DEFAULT 1,
     source_url TEXT,
     notes TEXT
 );

@@ -5,7 +5,12 @@ from pathlib import Path
 from typing import Any
 
 from db.connection import get_connection
-from services.recipes import TIME_OPTIONS, normalize_difficulty, normalize_time_label
+from services.recipes import (
+    TIME_OPTIONS,
+    normalize_difficulty,
+    normalize_time_label,
+    normalize_servings,
+)
 
 
 class IngredientImportError(ValueError):
@@ -126,6 +131,16 @@ def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
                     f"La recette #{index} contient une difficulté invalide."
                 ) from exc
 
+        servings = recipe.get("servings", 1)
+        if servings is None:
+            servings = 1
+        try:
+            normalized_servings = normalize_servings(servings)
+        except ValueError as exc:
+            raise RecipeImportError(
+                f"La recette #{index} contient un nombre de personnes invalide."
+            ) from exc
+
         ingredients = recipe.get("ingredients", [])
         if ingredients is None:
             ingredients = []
@@ -161,6 +176,7 @@ def parse_recipe_json(payload: str) -> list[dict[str, Any]]:
                 "instructions": instructions.strip(),
                 "time_label": cleaned_time_label or None,
                 "difficulty": normalized_difficulty,
+                "servings": normalized_servings,
                 "ingredients": parsed_ingredients,
             }
         )
@@ -219,14 +235,22 @@ def import_recipes_from_json(
             )
             cursor = connection.execute(
                 """
-                INSERT INTO recipe (name, total_minutes, time_label, difficulty, notes)
-                VALUES (?, ?, ?, ?, ?);
+                INSERT INTO recipe (
+                    name,
+                    total_minutes,
+                    time_label,
+                    difficulty,
+                    servings,
+                    notes
+                )
+                VALUES (?, ?, ?, ?, ?, ?);
                 """,
                 (
                     recipe["name"],
                     total_minutes,
                     normalized_time_label,
                     normalized_difficulty,
+                    recipe.get("servings", 1),
                     recipe["instructions"] or None,
                 ),
             )
