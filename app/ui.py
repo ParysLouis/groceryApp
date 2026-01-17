@@ -1442,12 +1442,13 @@ class RecipesApp(ctk.CTk):
         self.title("Recettes et liste de courses")
         self.body_font = ctk.CTkFont(size=15)
         self.tk_body_font = tkfont.Font(size=15)
+        self.tk_heading_font = tkfont.Font(size=16, weight="bold")
         style = ttk.Style()
         style.configure("Body.TLabelframe.Label", font=self.tk_body_font)
         style.configure("Treeview", font=self.tk_body_font, rowheight=27)
         style.configure(
             "Treeview.Heading",
-            font=tkfont.Font(size=13, weight="bold"),
+            font=self.tk_heading_font,
         )
         try:
             self.state("zoomed")
