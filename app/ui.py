@@ -1466,9 +1466,6 @@ class RecipesApp(ctk.CTk):
 
     def _maximize_window(self):
         self.update_idletasks()
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        self.geometry(f"{screen_width}x{screen_height}+0+0")
         try:
             self.state("zoomed")
         except tk.TclError:
