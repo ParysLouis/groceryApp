@@ -1480,14 +1480,24 @@ class RecipesApp(ctk.CTk):
 
     def _maximize_window(self):
         self.update_idletasks()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        zoomed = False
         try:
             self.state("zoomed")
+            zoomed = True
         except tk.TclError:
             pass
         try:
             self.attributes("-zoomed", True)
+            zoomed = True
         except tk.TclError:
             pass
+        self.update_idletasks()
+        current_width = self.winfo_width()
+        current_height = self.winfo_height()
+        if not zoomed or current_width < screen_width or current_height < screen_height:
+            self.geometry(f"{screen_width}x{screen_height}+0+0")
 
     def _build(self):
         tabview = ctk.CTkTabview(self)
