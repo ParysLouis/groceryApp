@@ -1245,6 +1245,8 @@ class ShoppingListTab(ctk.CTkFrame):
             self.manual_ingredient_var.set(filtered_names[0])
         self._update_manual_search_suggestions(search_text, filtered_names)
         self._sync_selected_ingredient()
+        if search_text and filtered_names:
+            self.after(0, self._show_manual_ingredient_dropdown)
 
     def _on_manual_filter_changed(self, *_):
         self._refresh_ingredient_options()
@@ -1539,9 +1541,6 @@ class RecipesApp(ctk.CTk):
 
     def _maximize_window(self):
         self.update_idletasks()
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        self.geometry(f"{screen_width}x{screen_height}+0+0")
         try:
             self.state("zoomed")
         except tk.TclError:
