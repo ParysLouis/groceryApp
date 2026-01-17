@@ -1,0 +1,50 @@
+{
+  "recipes": [
+    {
+      "name": "Salade tomate",
+      "instructions": "Couper les tomates et assaisonner avec de l’huile d’olive, du sel et du poivre.",
+      "ingredients": [
+        {
+          "name": "Tomate",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "name": "Poulet aux cacahuètes",
+      "instructions": "Faire revenir le poulet. Ajouter la pâte de cacahuètes, un peu d’eau, et laisser mijoter jusqu’à obtenir une sauce onctueuse.",
+      "ingredients": [
+        {
+          "name": "Poulet",
+          "quantity": 500
+        },
+        {
+          "name": "Beurre",
+          "quantity": 30
+        },
+        {
+          "name": "Oignon",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "name": "Hachis parmentier",
+      "instructions": "Cuire les pommes de terre et les écraser en purée. Faire revenir la viande. Alterner viande et purée dans un plat puis enfourner.",
+      "ingredients": [
+        {
+          "name": "Pomme de terre",
+          "quantity": 800
+        },
+        {
+          "name": "Bœuf",
+          "quantity": 500
+        },
+        {
+          "name": "Beurre",
+          "quantity": 40
+        }
+      ]
+    }
+  ]
+}
