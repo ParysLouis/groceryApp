@@ -1,42 +1,42 @@
-# Recipes & Grocery List
+# Recettes & Liste de courses
 
-A desktop app for managing ingredients, recipes, and shopping lists using Python 3, SQLite, and CustomTkinter.
+Une application de bureau pour gérer les ingrédients, les recettes et les listes de courses avec Python 3, SQLite et CustomTkinter.
 
-## Setup
+## Installation
 
-1. Ensure Python 3 is installed.
-2. From the repository root, run:
+1. Assurez-vous que Python 3 est installé.
+2. Depuis la racine du dépôt, exécutez :
 ```bash
 python -m pip install customtkinter
 ```
 
-3. From the repository root, run:
+3. Depuis la racine du dépôt, exécutez :
 
 ```bash
 python -m app
 ```
 
-The first launch initializes a local SQLite database in `data/recipes.db` with default aisles, units, and seasons.
+Le premier lancement initialise une base SQLite locale dans `data/recipes.db` avec les rayons, unités et saisons par défaut.
 
-## Project Structure
+## Structure du projet
 
 ```
-app/        # CustomTkinter UI
-services/   # Business logic (consolidation, export)
-db/         # Database schema + initialization
-tests/      # Unit tests
+app/        # Interface CustomTkinter
+services/   # Logique métier (consolidation, export)
+db/         # Schéma de base de données + initialisation
+tests/      # Tests unitaires
 ```
 
-## Usage
+## Utilisation
 
-- **Ingredients tab**: Add, edit, or delete ingredients. Each ingredient includes a default aisle, unit, and optional seasons.
-- **Import JSON**: Use the "Importer" button in the Ingredients tab to import a JSON file with ingredients.
-- **Recipes tab**: Placeholder for upcoming recipe CRUD.
-- **Shopping List tab**: Placeholder for upcoming list builder and export.
+- **Onglet Ingrédients** : Ajouter, modifier ou supprimer des ingrédients. Chaque ingrédient comprend un rayon par défaut, une unité et des saisons optionnelles.
+- **Import JSON** : Utilisez le bouton « Importer » dans l'onglet Ingrédients pour importer un fichier JSON d'ingrédients.
+- **Onglet Recettes** : Espace réservé pour le CRUD des recettes à venir.
+- **Onglet Liste de courses** : Espace réservé pour le générateur de liste et l'export à venir.
 
-### JSON import format
+### Format d'import JSON
 
-The importer expects a JSON file with a top-level object containing an `ingredients` list. Each ingredient requires `name`, `aisle`, and `unit`. `seasons` is optional and must be a list of strings matching existing seasons in the database.
+L'importateur attend un fichier JSON avec un objet racine contenant une liste `ingredients`. Chaque ingrédient exige `name`, `aisle` et `unit`. `seasons` est optionnel et doit être une liste de chaînes correspondant aux saisons existantes dans la base de données.
 
 ```json
 {
@@ -51,13 +51,15 @@ The importer expects a JSON file with a top-level object containing an `ingredie
 }
 ```
 
-The recipe importer expects a JSON file with a top-level object containing a `recipes` list. Each recipe requires `name`, optional `instructions`, and an optional `ingredients` list. Each ingredient entry must reference an existing ingredient name and include a numeric `quantity`.
+L'importateur de recettes attend un fichier JSON avec un objet racine contenant une liste `recipes`. Chaque recette nécessite `name`, `difficulty`, `time_minutes`, `instructions` (facultatif) et une liste `ingredients` (facultative). Chaque entrée d'ingrédient doit référencer un nom d'ingrédient existant et inclure une `quantity` numérique. `difficulty` doit être l'une des valeurs suivantes : `facile`, `moyen`, `difficile` (ne pas utiliser `easy`, `medium`, `hard`). `time_minutes` doit être un entier positif représentant la durée totale en minutes.
 
 ```json
 {
   "recipes": [
     {
       "name": "Salade tomate",
+      "difficulty": "facile",
+      "time_minutes": 10,
       "instructions": "Couper les tomates et assaisonner.",
       "ingredients": [
         {
@@ -70,9 +72,9 @@ The recipe importer expects a JSON file with a top-level object containing a `re
 }
 ```
 
-### Chatbot prompt for creating a recipe JSON
+### Prompt pour chatbot afin de créer un JSON de recette
 
-Use the following prompt with a chatbot to generate the recipe JSON. Provide your ingredient list and any known details; the chatbot should ask follow-up questions for anything missing, then return only the final JSON in the expected format.
+Utilisez le prompt suivant avec un chatbot pour générer le JSON de recette. Fournissez votre liste d'ingrédients et toutes les informations connues ; le chatbot doit poser des questions de suivi pour les éléments manquants, puis renvoyer uniquement le JSON final au format attendu.
 
 ```
 You are helping me create a JSON payload for a recipe importer. The JSON must follow this schema:
@@ -81,6 +83,8 @@ You are helping me create a JSON payload for a recipe importer. The JSON must fo
   "recipes": [
     {
       "name": string,                          // required
+      "difficulty": string,                    // required: facile | moyen | difficile
+      "time_minutes": number,                  // required: positive integer (minutes)
       "instructions": string (optional),
       "ingredients": [
         {
@@ -93,17 +97,19 @@ You are helping me create a JSON payload for a recipe importer. The JSON must fo
 }
 
 Rules:
-1) Ask me clarifying questions if any required information is missing (recipe name, ingredient names, quantities, or optional instructions if I want to include them).
-2) If I provide an ingredient list without quantities, ask for each quantity.
-3) If I provide quantities but no units, do not add units (quantities are numeric only).
-4) If I provide multiple recipes, output a JSON array with one object per recipe.
-5) Once you have all required info, respond ONLY with the final JSON and no extra text.
+1) Ask me clarifying questions if any required information is missing (recipe name, difficulty, total time in minutes, ingredient names, quantities, or optional instructions if I want to include them).
+2) Difficulty must be one of: facile, moyen, difficile (do not use easy, medium, hard).
+3) time_minutes must be a positive integer representing the total time in minutes (for example 10, 45, 120).
+4) If I provide an ingredient list without quantities, ask for each quantity.
+5) If I provide quantities but no units, do not add units (quantities are numeric only).
+6) If I provide multiple recipes, output a JSON array with one object per recipe.
+7) Once you have all required info, respond ONLY with the final JSON and no extra text.
 
 Now, here is what I know so far:
 <paste recipe name, optional instructions, and ingredient list here>
 ```
 
-## Running Tests
+## Lancer les tests
 
 ```bash
 python -m unittest discover -s tests
