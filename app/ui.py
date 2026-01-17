@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import math
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from tkinter import font as tkfont
@@ -12,6 +13,19 @@ from services.consolidation import (
     consolidate_items,
     group_by_aisle,
 )
+
+
+def format_quantity_and_unit(quantity: float, unit: str) -> tuple[str, str]:
+    normalized_quantity = quantity
+    normalized_unit = unit
+    unit_key = unit.strip().lower() if unit else ""
+    if unit_key == "millilitre" and math.isclose(quantity, 1000, abs_tol=1e-9):
+        normalized_quantity = quantity / 1000
+        normalized_unit = "litre"
+    elif unit_key == "gramme" and math.isclose(quantity, 1000, abs_tol=1e-9):
+        normalized_quantity = quantity / 1000
+        normalized_unit = "kilogramme"
+    return f"{normalized_quantity:g}", normalized_unit
 
 
 class IngredientDialog(ctk.CTkToplevel):
@@ -744,14 +758,17 @@ class RecipesTab(ctk.CTkFrame):
         if self.selected_recipe_id is None:
             return
         for item in recipes_service.list_recipe_ingredients(self.selected_recipe_id):
+            quantity_label, unit_label = format_quantity_and_unit(
+                float(item["quantity"]), item["unit_name"]
+            )
             self.ingredients_tree.insert(
                 "",
                 tk.END,
                 iid=str(item["id"]),
                 values=(
                     item["ingredient_name"],
-                    item["quantity"],
-                    item["unit_name"],
+                    quantity_label,
+                    unit_label,
                 ),
             )
 
@@ -1502,7 +1519,10 @@ class ShoppingListTab(ctk.CTkFrame):
             tk.END,
             iid=item_id,
             text=name,
-            values=(self._format_quantity(quantity), unit, aisle),
+            values=(
+                *format_quantity_and_unit(quantity, unit),
+                aisle,
+            ),
         )
         self.manual_ingredient_var.set("")
         self.manual_quantity_var.set("")
@@ -1548,8 +1568,9 @@ class ShoppingListTab(ctk.CTkFrame):
                     tk.END,
                     text=ingredient["ingredient_name"],
                     values=(
-                        self._format_quantity(scaled_quantity),
-                        ingredient["unit_name"],
+                        *format_quantity_and_unit(
+                            scaled_quantity, ingredient["unit_name"]
+                        ),
                     ),
                 )
             self.preview_tree.item(parent, open=True)
@@ -1566,8 +1587,9 @@ class ShoppingListTab(ctk.CTkFrame):
                     tk.END,
                     text=item["name"],
                     values=(
-                        self._format_quantity(item["quantity"]),
-                        item["unit"],
+                        *format_quantity_and_unit(
+                            item["quantity"], item["unit"]
+                        ),
                     ),
                 )
             self.preview_tree.item(manual_parent, open=True)
@@ -1597,8 +1619,7 @@ class ShoppingListTab(ctk.CTkFrame):
                     tk.END,
                     text=label,
                     values=(
-                        self._format_quantity(item.quantity),
-                        item.unit,
+                        *format_quantity_and_unit(item.quantity, item.unit),
                     ),
                 )
             self.grouped_tree.item(parent, open=True)
@@ -1637,11 +1658,6 @@ class ShoppingListTab(ctk.CTkFrame):
                 )
             )
         return items
-
-    @staticmethod
-    def _format_quantity(quantity: float) -> str:
-        return f"{quantity:g}"
-
 
 class RecipesApp(ctk.CTk):
     def __init__(self):
