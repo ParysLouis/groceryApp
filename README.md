@@ -70,6 +70,39 @@ The recipe importer expects a JSON file with a top-level object containing a `re
 }
 ```
 
+### Chatbot prompt for creating a recipe JSON
+
+Use the following prompt with a chatbot to generate the recipe JSON. Provide your ingredient list and any known details; the chatbot should ask follow-up questions for anything missing, then return only the final JSON in the expected format.
+
+```
+You are helping me create a JSON payload for a recipe importer. The JSON must follow this schema:
+
+{
+  "recipes": [
+    {
+      "name": string,                          // required
+      "instructions": string (optional),
+      "ingredients": [
+        {
+          "name": string,                      // must match an existing ingredient name
+          "quantity": number                   // numeric quantity only
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+1) Ask me clarifying questions if any required information is missing (recipe name, ingredient names, quantities, or optional instructions if I want to include them).
+2) If I provide an ingredient list without quantities, ask for each quantity.
+3) If I provide quantities but no units, do not add units (quantities are numeric only).
+4) If I provide multiple recipes, output a JSON array with one object per recipe.
+5) Once you have all required info, respond ONLY with the final JSON and no extra text.
+
+Now, here is what I know so far:
+<paste recipe name, optional instructions, and ingredient list here>
+```
+
 ## Running Tests
 
 ```bash
