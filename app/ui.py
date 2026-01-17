@@ -1064,6 +1064,26 @@ class ShoppingListTab(ctk.CTkFrame):
         self.grouped_tree.column("unit", width=100, anchor="center")
         self.grouped_tree.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
 
+    def _bind_mousewheel(self, _event):
+        self.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.bind_all("<Button-4>", self._on_mousewheel)
+        self.bind_all("<Button-5>", self._on_mousewheel)
+
+    def _unbind_mousewheel(self, _event):
+        self.unbind_all("<MouseWheel>")
+        self.unbind_all("<Button-4>")
+        self.unbind_all("<Button-5>")
+
+    def _on_mousewheel(self, event):
+        if not self._scroll_canvas:
+            return
+        if event.num == 4:
+            self._scroll_canvas.yview_scroll(-1, "units")
+        elif event.num == 5:
+            self._scroll_canvas.yview_scroll(1, "units")
+        else:
+            self._scroll_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
     def _load_data(self):
         self.aisles = ingredient_service.list_aisles()
         self.units = ingredient_service.list_units()
