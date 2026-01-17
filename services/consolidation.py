@@ -26,9 +26,9 @@ class ConsolidatedItem:
 
 
 def consolidate_items(items: Iterable[ShoppingItem]) -> list[ConsolidatedItem]:
-    grouped: dict[tuple[str, str], ConsolidatedItem] = {}
+    grouped: dict[tuple[str, str, str], ConsolidatedItem] = {}
     for item in items:
-        key = (item.ingredient_name, item.unit)
+        key = (item.ingredient_name, item.unit, item.aisle_name)
         if key in grouped:
             existing = grouped[key]
             if existing.note == item.note:
@@ -58,15 +58,30 @@ def consolidate_items(items: Iterable[ShoppingItem]) -> list[ConsolidatedItem]:
             )
     return sorted(
         grouped.values(),
-        key=lambda item: (item.aisle_name.lower(), item.ingredient_name.lower()),
+        key=lambda item: (
+            item.aisle_order,
+            item.aisle_name.lower(),
+            item.ingredient_name.lower(),
+        ),
     )
 
 
 def group_by_aisle(items: Sequence[ConsolidatedItem]) -> list[tuple[str, list[ConsolidatedItem]]]:
     grouped: dict[str, list[ConsolidatedItem]] = defaultdict(list)
+    aisle_orders: dict[str, int] = {}
     for item in items:
         grouped[item.aisle_name].append(item)
+        if item.aisle_name not in aisle_orders:
+            aisle_orders[item.aisle_name] = item.aisle_order
+        else:
+            aisle_orders[item.aisle_name] = min(
+                aisle_orders[item.aisle_name],
+                item.aisle_order,
+            )
     return [
         (aisle_name, grouped[aisle_name])
-        for aisle_name in sorted(grouped.keys(), key=str.lower)
+        for aisle_name in sorted(
+            grouped.keys(),
+            key=lambda name: (aisle_orders.get(name, 0), name.lower()),
+        )
     ]
