@@ -785,7 +785,7 @@ class ShoppingListTab(ctk.CTkFrame):
         self.selected_recipes_list = None
         self.recipe_search_var = tk.StringVar()
         self.recipe_time_var = tk.StringVar()
-        self.recipe_difficulty_var = tk.StringVar()
+        self.recipe_difficulty_vars = {}
         self.recipe_season_var = tk.StringVar()
         self.manual_search_var = tk.StringVar()
         self.manual_season_var = tk.StringVar()
@@ -796,7 +796,6 @@ class ShoppingListTab(ctk.CTkFrame):
         self.manual_unit_var = tk.StringVar()
         self.manual_aisle_var = tk.StringVar()
         self.recipe_time_combo = None
-        self.recipe_difficulty_combo = None
         self.recipe_season_combo = None
         self.manual_ingredient_combo = None
         self.manual_season_combo = None
@@ -868,15 +867,20 @@ class ShoppingListTab(ctk.CTkFrame):
         ctk.CTkLabel(filters_frame, text="Difficulté", font=self.body_font).grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
-        self.recipe_difficulty_combo = ctk.CTkComboBox(
-            filters_frame,
-            variable=self.recipe_difficulty_var,
-            command=self._on_recipe_filter_changed,
-            font=self.body_font,
+        difficulty_frame = ctk.CTkFrame(filters_frame, fg_color="transparent")
+        difficulty_frame.grid(
+            row=1, column=1, sticky="w", padx=(4, 8), pady=(4, 0)
         )
-        self.recipe_difficulty_combo.grid(
-            row=1, column=1, sticky="ew", padx=(4, 8), pady=(4, 0)
-        )
+        for index, difficulty in enumerate(recipes_service.DIFFICULTY_OPTIONS):
+            var = tk.BooleanVar()
+            self.recipe_difficulty_vars[difficulty] = var
+            ctk.CTkCheckBox(
+                difficulty_frame,
+                text=difficulty,
+                variable=var,
+                command=self._on_recipe_filter_changed,
+                font=self.body_font,
+            ).grid(row=0, column=index, sticky="w", padx=(0, 6))
         ctk.CTkLabel(filters_frame, text="Saison", font=self.body_font).grid(
             row=1, column=2, sticky="w", pady=(4, 0)
         )
@@ -1098,12 +1102,9 @@ class ShoppingListTab(ctk.CTkFrame):
     def _refresh_recipe_filter_options(self):
         season_names = [season["name"] for season in self.seasons]
         self.recipe_time_combo.configure(values=["Tous"] + recipes_service.TIME_OPTIONS)
-        self.recipe_difficulty_combo.configure(values=["Tous"] + recipes_service.DIFFICULTY_OPTIONS)
         self.recipe_season_combo.configure(values=["Toutes"] + season_names)
         if not self.recipe_time_var.get():
             self.recipe_time_var.set("Tous")
-        if not self.recipe_difficulty_var.get():
-            self.recipe_difficulty_var.set("Tous")
         if not self.recipe_season_var.get():
             self.recipe_season_var.set("Toutes")
 
@@ -1121,18 +1122,27 @@ class ShoppingListTab(ctk.CTkFrame):
         base_recipes = recipes_service.list_recipes(season_id=season_id)
         search_text = self.recipe_search_var.get().strip().lower()
         time_filter = self.recipe_time_var.get()
-        difficulty_filter = self.recipe_difficulty_var.get()
+        selected_difficulties = [
+            difficulty
+            for difficulty, var in self.recipe_difficulty_vars.items()
+            if var.get()
+        ]
+        filter_minutes = None
+        if time_filter and time_filter != "Tous":
+            _, filter_minutes = recipes_service.normalize_time_label(time_filter)
         filtered_recipes = []
         for recipe in base_recipes:
             if search_text and search_text not in recipe["name"].lower():
                 continue
-            if time_filter and time_filter != "Tous" and recipe["time_label"] != time_filter:
-                continue
-            if (
-                difficulty_filter
-                and difficulty_filter != "Tous"
-                and recipe["difficulty"] != difficulty_filter
-            ):
+            if filter_minutes is not None:
+                if not recipe["time_label"]:
+                    continue
+                _, recipe_minutes = recipes_service.normalize_time_label(
+                    recipe["time_label"]
+                )
+                if recipe_minutes > filter_minutes:
+                    continue
+            if selected_difficulties and recipe["difficulty"] not in selected_difficulties:
                 continue
             filtered_recipes.append(recipe)
             self.recipe_lookup[recipe["id"]] = recipe
