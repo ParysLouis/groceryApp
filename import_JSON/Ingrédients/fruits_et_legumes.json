@@ -42,31 +42,31 @@
     {
       "name": "Fraise",
       "aisle": "Fruits et légumes",
-      "unit": "pièce",
+      "unit": "gramme",
       "seasons": ["printemps", "été"]
     },
     {
       "name": "Framboise",
       "aisle": "Fruits et légumes",
-      "unit": "pièce",
+      "unit": "gramme",
       "seasons": ["été"]
     },
     {
       "name": "Myrtille",
       "aisle": "Fruits et légumes",
-      "unit": "pièce",
+      "unit": "gramme",
       "seasons": ["été"]
     },
     {
       "name": "Groseille",
       "aisle": "Fruits et légumes",
-      "unit": "pièce",
+      "unit": "gramme",
       "seasons": ["été"]
     },
     {
       "name": "Raisin",
       "aisle": "Fruits et légumes",
-      "unit": "pièce",
+      "unit": "gramme",
       "seasons": ["été", "automne"]
     },
     {
@@ -136,7 +136,7 @@
     {
       "name": "Tomate cerise",
       "aisle": "Fruits et légumes",
-      "unit": "pièce",
+      "unit": "gramme",
       "seasons": ["été"]
     },
     {
@@ -163,9 +163,13 @@
       "unit": "pièce",
       "seasons": ["été"]
     },
-    { "name": "Carotte", "aisle": "Fruits et légumes", "unit": "pièce" },
-    { "name": "Pomme de terre", "aisle": "Fruits et légumes", "unit": "pièce" },
-    { "name": "Patate douce", "aisle": "Fruits et légumes", "unit": "pièce" },
+    { "name": "Carotte", "aisle": "Fruits et légumes", "unit": "gramme" },
+    {
+      "name": "Pomme de terre",
+      "aisle": "Fruits et légumes",
+      "unit": "gramme"
+    },
+    { "name": "Patate douce", "aisle": "Fruits et légumes", "unit": "gramme" },
     { "name": "Oignon", "aisle": "Fruits et légumes", "unit": "pièce" },
     { "name": "Oignon rouge", "aisle": "Fruits et légumes", "unit": "pièce" },
     { "name": "Ail", "aisle": "Fruits et légumes", "unit": "pièce" },
@@ -259,7 +263,7 @@
     {
       "name": "Champignon de Paris",
       "aisle": "Fruits et légumes",
-      "unit": "pièce"
+      "unit": "gramme"
     },
     {
       "name": "Maïs",
