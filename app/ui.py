@@ -803,6 +803,9 @@ class ShoppingListTab(ctk.CTkFrame):
         self.manual_filter_unit_combo = None
         self.manual_unit_combo = None
         self.manual_aisle_combo = None
+        self.manual_search_entry = None
+        self.manual_search_list = None
+        self.manual_search_scroll = None
         self.manual_items_tree = None
         self.preview_tree = None
         self.grouped_tree = None
@@ -930,13 +933,42 @@ class ShoppingListTab(ctk.CTkFrame):
         ctk.CTkLabel(manual_frame, text="Recherche", font=self.body_font).grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
-        ctk.CTkEntry(
+        self.manual_search_entry = ctk.CTkEntry(
             manual_frame, textvariable=self.manual_search_var, font=self.body_font
-        ).grid(
+        )
+        self.manual_search_entry.grid(
             row=1, column=1, sticky="ew", pady=(4, 0)
         )
+        self.manual_search_list = tk.Listbox(
+            manual_frame,
+            height=10,
+            exportselection=False,
+            font=self.tk_body_font,
+        )
+        self.manual_search_list.grid(
+            row=2, column=1, sticky="ew", pady=(2, 0)
+        )
+        self.manual_search_scroll = ttk.Scrollbar(
+            manual_frame, orient="vertical", command=self.manual_search_list.yview
+        )
+        self.manual_search_scroll.grid(row=2, column=2, sticky="ns", pady=(2, 0))
+        self.manual_search_list.configure(yscrollcommand=self.manual_search_scroll.set)
+        self.manual_search_list.bind(
+            "<<ListboxSelect>>", self._on_manual_search_selected
+        )
+        self.manual_search_list.bind(
+            "<MouseWheel>", self._on_manual_search_mousewheel
+        )
+        self.manual_search_list.bind(
+            "<Button-4>", self._on_manual_search_mousewheel
+        )
+        self.manual_search_list.bind(
+            "<Button-5>", self._on_manual_search_mousewheel
+        )
+        self.manual_search_list.grid_remove()
+        self.manual_search_scroll.grid_remove()
         ctk.CTkLabel(manual_frame, text="Saison", font=self.body_font).grid(
-            row=2, column=0, sticky="w", pady=(4, 0)
+            row=3, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_season_combo = ctk.CTkComboBox(
             manual_frame,
@@ -944,9 +976,9 @@ class ShoppingListTab(ctk.CTkFrame):
             command=self._on_manual_filter_changed,
             font=self.body_font,
         )
-        self.manual_season_combo.grid(row=2, column=1, sticky="ew", pady=(4, 0))
+        self.manual_season_combo.grid(row=3, column=1, sticky="ew", pady=(4, 0))
         ctk.CTkLabel(manual_frame, text="Filtre rayon", font=self.body_font).grid(
-            row=3, column=0, sticky="w", pady=(4, 0)
+            row=4, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_filter_aisle_combo = ctk.CTkComboBox(
             manual_frame,
@@ -955,10 +987,10 @@ class ShoppingListTab(ctk.CTkFrame):
             font=self.body_font,
         )
         self.manual_filter_aisle_combo.grid(
-            row=3, column=1, sticky="ew", pady=(4, 0)
+            row=4, column=1, sticky="ew", pady=(4, 0)
         )
         ctk.CTkLabel(manual_frame, text="Filtre unité", font=self.body_font).grid(
-            row=4, column=0, sticky="w", pady=(4, 0)
+            row=5, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_filter_unit_combo = ctk.CTkComboBox(
             manual_frame,
@@ -967,10 +999,10 @@ class ShoppingListTab(ctk.CTkFrame):
             font=self.body_font,
         )
         self.manual_filter_unit_combo.grid(
-            row=4, column=1, sticky="ew", pady=(4, 0)
+            row=5, column=1, sticky="ew", pady=(4, 0)
         )
         ctk.CTkLabel(manual_frame, text="Ingrédient", font=self.body_font).grid(
-            row=5, column=0, sticky="w", pady=(4, 0)
+            row=6, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_ingredient_combo = ctk.CTkComboBox(
             manual_frame,
@@ -979,32 +1011,32 @@ class ShoppingListTab(ctk.CTkFrame):
             font=self.body_font,
         )
         self.manual_ingredient_combo.grid(
-            row=5, column=1, sticky="ew", pady=(4, 0)
+            row=6, column=1, sticky="ew", pady=(4, 0)
         )
         ctk.CTkLabel(manual_frame, text="Quantité", font=self.body_font).grid(
-            row=6, column=0, sticky="w", pady=(4, 0)
+            row=7, column=0, sticky="w", pady=(4, 0)
         )
         ctk.CTkEntry(
             manual_frame, textvariable=self.manual_quantity_var, font=self.body_font
         ).grid(
-            row=6, column=1, sticky="ew", pady=(4, 0)
+            row=7, column=1, sticky="ew", pady=(4, 0)
         )
         ctk.CTkLabel(manual_frame, text="Unité", font=self.body_font).grid(
-            row=7, column=0, sticky="w", pady=(4, 0)
+            row=8, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_unit_combo = ctk.CTkComboBox(
             manual_frame, variable=self.manual_unit_var, font=self.body_font
         )
-        self.manual_unit_combo.grid(row=7, column=1, sticky="ew", pady=(4, 0))
+        self.manual_unit_combo.grid(row=8, column=1, sticky="ew", pady=(4, 0))
         ctk.CTkLabel(manual_frame, text="Rayon", font=self.body_font).grid(
-            row=8, column=0, sticky="w", pady=(4, 0)
+            row=9, column=0, sticky="w", pady=(4, 0)
         )
         self.manual_aisle_combo = ctk.CTkComboBox(
             manual_frame, variable=self.manual_aisle_var, font=self.body_font
         )
-        self.manual_aisle_combo.grid(row=8, column=1, sticky="ew", pady=(4, 0))
+        self.manual_aisle_combo.grid(row=9, column=1, sticky="ew", pady=(4, 0))
         ctk.CTkButton(manual_frame, text="Ajouter", command=self._add_manual_item).grid(
-            row=9, column=1, sticky="e", pady=(6, 6)
+            row=10, column=1, sticky="e", pady=(6, 6)
         )
         self.manual_items_tree = ttk.Treeview(
             manual_frame,
@@ -1021,11 +1053,11 @@ class ShoppingListTab(ctk.CTkFrame):
         self.manual_items_tree.column("unit", width=80, anchor="center")
         self.manual_items_tree.column("aisle", width=120, anchor="w")
         self.manual_items_tree.grid(
-            row=10, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
+            row=11, column=0, columnspan=2, sticky="nsew", pady=(4, 0)
         )
         ctk.CTkButton(
             manual_frame, text="Supprimer", command=self._remove_manual_item
-        ).grid(row=11, column=1, sticky="e", pady=(4, 0))
+        ).grid(row=12, column=1, sticky="e", pady=(4, 0))
         self.manual_search_var.trace_add("write", self._on_manual_filter_changed)
         self.manual_ingredient_var.trace_add(
             "write", self._on_manual_ingredient_changed
@@ -1211,6 +1243,7 @@ class ShoppingListTab(ctk.CTkFrame):
         self.manual_ingredient_combo.configure(values=filtered_names)
         if filtered_names and self.manual_ingredient_var.get() not in filtered_names:
             self.manual_ingredient_var.set(filtered_names[0])
+        self._update_manual_search_suggestions(search_text, filtered_names)
         self._sync_selected_ingredient()
         if search_text and filtered_names:
             self.after(0, self._show_manual_ingredient_dropdown)
@@ -1247,14 +1280,42 @@ class ShoppingListTab(ctk.CTkFrame):
         self.manual_unit_combo.configure(state="normal")
         self.manual_aisle_combo.configure(state="normal")
 
-    def _show_manual_ingredient_dropdown(self):
-        combo = self.manual_ingredient_combo
-        if hasattr(combo, "_open_dropdown_menu"):
-            combo._open_dropdown_menu()
+    def _update_manual_search_suggestions(self, search_text, ingredient_names):
+        if not self.manual_search_list or not self.manual_search_scroll:
             return
-        dropdown = getattr(combo, "_dropdown_menu", None)
-        if dropdown and hasattr(dropdown, "open"):
-            dropdown.open()
+        self.manual_search_list.delete(0, tk.END)
+        if not search_text or not ingredient_names:
+            self.manual_search_list.grid_remove()
+            self.manual_search_scroll.grid_remove()
+            return
+        for name in ingredient_names:
+            self.manual_search_list.insert(tk.END, name)
+        self.manual_search_list.grid()
+        if len(ingredient_names) > 10:
+            self.manual_search_scroll.grid()
+        else:
+            self.manual_search_scroll.grid_remove()
+
+    def _on_manual_search_selected(self, _event):
+        if not self.manual_search_list:
+            return
+        selection = self.manual_search_list.curselection()
+        if not selection:
+            return
+        name = self.manual_search_list.get(selection[0])
+        self.manual_ingredient_var.set(name)
+        if self.manual_search_entry:
+            self.manual_search_entry.focus_set()
+
+    def _on_manual_search_mousewheel(self, event):
+        if not self.manual_search_list:
+            return
+        if event.num == 4:
+            self.manual_search_list.yview_scroll(-1, "units")
+        elif event.num == 5:
+            self.manual_search_list.yview_scroll(1, "units")
+        else:
+            self.manual_search_list.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def _add_recipe(self):
         selection = self.available_recipes_list.curselection()
