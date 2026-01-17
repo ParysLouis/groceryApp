@@ -767,31 +767,21 @@ class ShoppingListTab(ttk.Frame):
         self._load_data()
 
     def _build(self):
-        self._scroll_canvas = tk.Canvas(self, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(
-            self, orient="vertical", command=self._scroll_canvas.yview
-        )
-        self._scroll_canvas.configure(yscrollcommand=scrollbar.set)
-        self._scroll_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        canvas = tk.Canvas(self, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        container = ttk.Frame(self._scroll_canvas, padding=8)
-        container_id = self._scroll_canvas.create_window(
-            (0, 0), window=container, anchor="nw"
-        )
+        container = ttk.Frame(canvas, padding=8)
+        container_id = canvas.create_window((0, 0), window=container, anchor="nw")
         container.bind(
             "<Configure>",
-            lambda _event: self._scroll_canvas.configure(
-                scrollregion=self._scroll_canvas.bbox("all")
-            ),
+            lambda _event: canvas.configure(scrollregion=canvas.bbox("all")),
         )
-        self._scroll_canvas.bind(
+        canvas.bind(
             "<Configure>",
-            lambda event: self._scroll_canvas.itemconfigure(
-                container_id, width=event.width
-            ),
+            lambda event: canvas.itemconfigure(container_id, width=event.width),
         )
-        container.bind("<Enter>", self._bind_mousewheel)
-        container.bind("<Leave>", self._unbind_mousewheel)
 
         selection_frame = ttk.LabelFrame(container, text="Sélection")
         selection_frame.pack(fill=tk.X, padx=4, pady=4)
