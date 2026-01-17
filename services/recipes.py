@@ -15,7 +15,7 @@ TIME_OPTIONS = [
     "4h+",
 ]
 
-DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"]
+DIFFICULTY_OPTIONS = ["Facile", "Moyen", "Difficile"]
 
 _TIME_TO_MINUTES = {
     "15min": 15,
@@ -31,6 +31,9 @@ _TIME_TO_MINUTES = {
 }
 
 _DIFFICULTY_LOOKUP = {option.lower(): option for option in DIFFICULTY_OPTIONS}
+_DIFFICULTY_LOOKUP.update(
+    {"easy": "Facile", "medium": "Moyen", "hard": "Difficile"}
+)
 
 
 def normalize_time_label(time_label: str | None) -> tuple[str | None, int]:
