@@ -1440,11 +1440,11 @@ class RecipesApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Recettes et liste de courses")
-        self.body_font = ctk.CTkFont(size=13)
-        self.tk_body_font = tkfont.Font(size=13)
+        self.body_font = ctk.CTkFont(size=15)
+        self.tk_body_font = tkfont.Font(size=15)
         style = ttk.Style()
         style.configure("Body.TLabelframe.Label", font=self.tk_body_font)
-        style.configure("Treeview", font=self.tk_body_font, rowheight=24)
+        style.configure("Treeview", font=self.tk_body_font, rowheight=27)
         style.configure(
             "Treeview.Heading",
             font=tkfont.Font(size=13, weight="bold"),
