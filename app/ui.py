@@ -766,8 +766,21 @@ class ShoppingListTab(ttk.Frame):
         self._load_data()
 
     def _build(self):
-        container = ttk.Frame(self, padding=8)
-        container.pack(fill=tk.BOTH, expand=True)
+        canvas = tk.Canvas(self, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        container = ttk.Frame(canvas, padding=8)
+        container_id = canvas.create_window((0, 0), window=container, anchor="nw")
+        container.bind(
+            "<Configure>",
+            lambda _event: canvas.configure(scrollregion=canvas.bbox("all")),
+        )
+        canvas.bind(
+            "<Configure>",
+            lambda event: canvas.itemconfigure(container_id, width=event.width),
+        )
 
         selection_frame = ttk.LabelFrame(container, text="Sélection")
         selection_frame.pack(fill=tk.X, padx=4, pady=4)
@@ -1341,7 +1354,10 @@ class RecipesApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Recettes et liste de courses")
-        self.geometry("800x500")
+        try:
+            self.state("zoomed")
+        except tk.TclError:
+            self.attributes("-zoomed", True)
         initialize_database()
         self._build()
 
