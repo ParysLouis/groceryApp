@@ -1207,8 +1207,13 @@ class ShoppingListTab(ctk.CTkFrame):
         self.ingredient_lookup = {
             ingredient["name"]: ingredient for ingredient in self.ingredients
         }
-        self.manual_ingredient_combo.configure(values=[item["name"] for item in filtered])
+        filtered_names = [item["name"] for item in filtered]
+        self.manual_ingredient_combo.configure(values=filtered_names)
+        if filtered_names and self.manual_ingredient_var.get() not in filtered_names:
+            self.manual_ingredient_var.set(filtered_names[0])
         self._sync_selected_ingredient()
+        if search_text and filtered_names:
+            self.after(0, self._show_manual_ingredient_dropdown)
 
     def _on_manual_filter_changed(self, *_):
         self._refresh_ingredient_options()
@@ -1241,6 +1246,15 @@ class ShoppingListTab(ctk.CTkFrame):
         self.selected_ingredient = None
         self.manual_unit_combo.configure(state="normal")
         self.manual_aisle_combo.configure(state="normal")
+
+    def _show_manual_ingredient_dropdown(self):
+        combo = self.manual_ingredient_combo
+        if hasattr(combo, "_open_dropdown_menu"):
+            combo._open_dropdown_menu()
+            return
+        dropdown = getattr(combo, "_dropdown_menu", None)
+        if dropdown and hasattr(dropdown, "open"):
+            dropdown.open()
 
     def _add_recipe(self):
         selection = self.available_recipes_list.curselection()
